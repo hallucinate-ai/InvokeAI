@@ -3,7 +3,11 @@ embeddings/
 outputs/
 models/ldm/stable-diffusion-v1/model.ckpt
 **/restoration/codeformer/weights
-
+invokeai/newBackend/node_modules
+invokeai/newBackend/package-lock.json
+invokeai/frontend/yarn.lock
+invokeai/frontend/package-lock.json
+invokeai/frontend/node_modules
 # ignore user models config
 configs/models.user.yaml
 config/models.user.yml
