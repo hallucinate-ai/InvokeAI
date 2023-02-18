@@ -5,6 +5,7 @@ import * as createWebSocket from "./createWebSocket.js"
 import { spawn } from 'child_process'
 import { exec } from 'child_process';
 import * as child_process from "child_process";
+import * as createExpress from "./createExpress2.js"
 
 async function execute(command, args) {
     return new Promise((resolve, reject) => {
@@ -29,6 +30,7 @@ async function execute(command, args) {
 async function startServer() {
     let dir = path.dirname(new URL(import.meta.url).pathname)
 	await execute('node', [ dir + '/createExpress.js'])
-	await createWebSocket.startWebsocket(true)
+    createExpress.startServer()
+	createWebSocket.startWebsocket(true)
 }
 startServer();
