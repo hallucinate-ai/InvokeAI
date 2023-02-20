@@ -151,21 +151,58 @@ function generateImage(request, socket){
 					if(expectedBytes <= 0){
 						console.log('done')
 						let imagedata = fs.readFileSync('output.jpg', {encoding: 'base64'})
-						let progressDict = {
-							"url": "data:image/png;base64," + imagedata,							
-							"isBase64": true,
-							"mtime": 0,
-							"metadata": {},
-							"width": request["width"],
-							"height": request["height"],
-							"generationMode": request["generationMode"],
-							"boundingBox": null
+						let output = {
+							"url": "outputs/temp-images/000018.fdec8761.4028965222.png",
+							"thumbnail": "outputs/thumbnails/000018.fdec8761.4028965222.webp",
+							"mtime": 1676801456.6904244,
+							"metadata": {
+							  "model": "stable diffusion",
+							  "model_weights": "stable-diffusion-1.5",
+							  "model_hash": "cc6cb27103417325ff94f52b7a5d2dde45a7515b25c255d8e396c90014281516",
+							  "app_id": "invoke-ai/InvokeAI",
+							  "app_version": "2.2.5",
+							  "image": {
+								"prompt": [
+								  {
+									"prompt": "a dog on a coin",
+									"weight": 1
+								  }
+								],
+								"steps": 50,
+								"cfg_scale": 7.5,
+								"threshold": 0,
+								"perlin": 0,
+								"height": 512,
+								"width": 512,
+								"seed": 4028965222,
+								"type": "unifiedCanvas",
+								"postprocessing": null,
+								"sampler": "k_lms",
+								"variations": []
+							  }
+							},
+							"dreamPrompt": "\"a dog on a coin\" -s 50 -S 4028965222 -W 512 -H 512 -C 7.5 -A k_lms",
+							"width": 512,
+							"height": 512,
+							"boundingBox": {
+							  "x": 0,
+							  "y": 0,
+							  "width": 512,
+							  "height": 512
+							},
+							"generationMode": "unifiedCanvas",
+							"attentionMaps": "data:image/png;base64,",
+							"tokens": [
+								"a</w>",
+								"dog</w>",
+								"on</w>",
+								"a</w>",
+								"coin</w>"
+							]
 						}
-						socket.emit("generationResult", progressDict)
+					socket.emit("generationResult", output)
 					}
-
 					break
-	
 			}
 		})
 	
@@ -205,7 +242,6 @@ function generateImage(request, socket){
 
 	return output
 }
-
 
 function galleryImages(user){
 	let images = []
@@ -269,6 +305,71 @@ function requestModelChange(model){
 	return template
 }
 
+function systemConfig(t, socket){
+	let template = {}
+	return template
+}
+
+function sid(t, socket){
+	let template = {}
+	return template
+}
+
+function error(t, socket){
+	let template = {}
+	return template
+}
+
+function message(t, socket){
+	let template = {}
+	return template
+}
+
+function requestImages(t, socket){
+	let template = {}
+	return template
+}
+
+function requestModelChange(model){
+	let output = {
+		"model_name": model,
+		"model_list":{
+			"stable-diffusion-1.5": {
+				"status": "active",
+				"description": "The newest Stable Diffusion version 1.5 weight file (4.27 GB)",
+				"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
+				"config": "configs/stable-diffusion/v1-inference.yaml",
+				"width": 512,
+				"height": 512,
+				"vae": "./models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
+				"default": true
+			},
+			"stable-diffusion-1.4": {
+				"status": "not loaded",
+				"description": "Stable Diffusion inference model version 1.4",
+				"weights": "models/ldm/stable-diffusion-v1/sd-v1-4.ckpt",
+				"config": "configs/stable-diffusion/v1-inference.yaml",
+				"width": 512,
+				"height": 512,
+				"vae": "models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
+				"default": false
+			},
+			"inpainting-1.5": {
+				"status": "not loaded",
+				"description": "RunwayML SD 1.5 model optimized for inpainting",
+				"weights": "models/ldm/stable-diffusion-v1/sd-v1-5-inpainting.ckpt",
+				"config": "configs/stable-diffusion/v1-inpainting-inference.yaml",
+				"width": 512,
+				"height": 512,
+				"vae": "models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
+				"default": false
+			}
+		} 
+	}
+	return output
+}
+
+
 const app = express();
 const server = createServer(app);
 var socketio = new Server(server);
@@ -331,74 +432,37 @@ socketio.on('connection', function(socket) {
 
 	socket.on('requestImages', function(user) {
 		console.log("Received a requestImages request");
-		let output = requestImages(user)
+		let output = requestImages(user, socket)
 		socket.emit('requestImages', output);
 	});
 
 	socket.on('requestModelChange', function(user) {
-		console.log("Received a requestImages request");
-		let	output = requestModelChange(user)
+		console.log("Received a requestModelChange request");
+		let	output = requestModelChange(user, socket)
 		socket.emit('requestModelChange', output);
 	});
 
+	socket.on('sid', function(user) {
+		console.log("Received a sid request");
+		let	output = sid(t, socket)
+		socket.emit('sid', output);
+	});
+
+	socket.on('systemConfig', function(user) {
+		console.log("Received a systemConfig request");
+		let	output = systemConfig(t, socket)
+		socket.emit('systemConfig', output);
+	});
+
+	socket.on('error',  function(user) {
+		console.log("Received a error request");
+		let	output = error(t, socket)
+		socket.emit('error', output);
+	});
+
 	socket.on('message', function(message){
-		// parse the message
-		const { event, ...payload } = JSON.parse(message)
-		// handle the event
-		switch (event) {
-			case 'chunk':
-				// write the chunk to the file stream
-				fileStream.write(Buffer.from(payload.blob, 'base64'))
-				break
-
-			case 'error':
-				// log the error
-				console.log('error:', payload.message)
-				break
-
-			case 'sid':
-				let sid = sid()
-				socket.send(JSON.stringify({
-					event: 'sid',
-					sid: sid
-				}))
-				break
-
-
-			case 'systemConfig':
-				output = systemConfig()
-				socket.send(JSON.stringify({
-					event: 'systemConfig',
-					output: output
-				}))
-				break
-
-			case 'galleryImages':
-				output = galleryImages(sid)
-				socket.send(JSON.stringify({
-					event: 'galleryImages',
-					output: output
-				}))
-				break
-			
-
-			
-			case 'progressUpdate':
-				// close the file stream
-				output= progressUpdate(sid)
-				socket.send(JSON.stringify({
-					event: 'progressUpdate',
-					output: output
-				}))
-				break
-			
-			case 'intermediateResult':
-				let output = intermediateResult(sid)
-				socket.send(JSON.stringify({
-					event: 'intermediateResult',
-					output: output
-				}))
-				break
-		}
+		console.log("Received a message request");
+		let	output = message(t, socket)
+		socket.emit('message', output);
 	})
 })
