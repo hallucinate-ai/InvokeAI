@@ -11,11 +11,30 @@ import jimp from 'jimp'
 import fs from 'fs'
 import * as generateImage from './generateImage.js'
 import * as galleryImages from './galleryImages.js'
+import * as getModelList from './getModelList.js'
+import { exec } from 'child_process';
+import axios from 'axios'
+import * as child_process from "child_process";
 
-function requestModelChange(model){
-	let template = {}
-	return template
+async function execute(command, args) {
+    return new Promise((resolve, reject) => {
+        const spawn = child_process.spawn(command, args)
+        let result = ""
+        spawn.stdout.on('data', (data) => {
+            if (result) {
+                //reject(Error('Helper function does not work for long lived proccess'))
+            }
+            result = data.toString()
+        })
+        spawn.stderr.on('data', (error) => {
+            reject(Error(error.toString()))
+        })
+        spawn.on('exit', code => {
+            resolve({ code, result })
+        })
+    })
 }
+
 
 function systemConfig(t, socket){
 	let template = {}
@@ -82,7 +101,7 @@ function requestModelChange(model){
 }
 
 
-function startServer(port){
+export function startServer(port){
 	//check if port within range 0-65535
 	if (port < 0 || port > 65535 || isNaN(port)){
 		port = 9090
@@ -91,6 +110,27 @@ function startServer(port){
 	const app = express();
 	const server = createServer(app);
 	var socketio = new Server(server);
+	if (!fs.existsSync('./gallery')){
+		fs.mkdirSync('./gallery')
+	}
+	if (!fs.existsSync('./s3gallery')){
+		fs.mkdirSync('./s3gallery')
+	}
+	command = "mount | grep s3gallery"
+	let results = execute("mount", ["|", "grep", "s3gallery"])
+	results = results.split('\n')
+	if (results.length == 1){
+		let ACCESS_KEY_ID = "OVEXCZJJQPUGXZOV"
+		let SECRET_ACCESS_KEY = "H1osbJRy3903PTMqyOAGD6MIohi4wLXGscnvMEduh10"
+		let command = "echo " + ACCESS_KEY_ID + ":" + SECRET_ACCESS_KEY + " > .passwd-s3fs ; chmod 600 .passwd-s3fs"
+		results = execute("echo", [ACCESS_KEY_ID + ":" + SECRET_ACCESS_KEY + " > .passwd-s3fs ; chmod 600 .passwd-s3fs"])
+		console.log(command)
+		console.log(results)
+		command = "s3fs gallery ./s3gallery -o passwd_file=.passwd-s3fs -o url=https://object.ord1.coreweave.com -o use_path_request_style"
+		results = execute("s3fs", ["s3gallery", "./s3gallery", "-o", "passwd_file=.passwd-s3fs"])
+		console.log(command)
+		console.log(results)
+	}
 
 	app.get('/', function (req, res) {
 		res.send()
@@ -108,9 +148,18 @@ function startServer(port){
 			//set cookies for session ID
 			res.cookie('sid', sid)
 			let response = [{"sid":sid,"upgrades":["websocket"],"pingTimeout":60000,"pingInterval":100000}]
+			if (!fs.existsSync('./gallery/' + sid)){
+				fs.mkdirSync('./gallery' + sid)
+			}
+			if (!fs.existsSync('./s3gallery' + sid)){
+				fs.mkdirSync('./s3gallery' + sid)
+			}
+			command "s3cmd sync s3://gallery/" + sid + " ./gallery/" + sid;
+			results = execute("s3cmd", ["sync", "s3://gallery/" + sid, "./gallery/" + sid])
 			res.send(response)
 		}
 		else if (req.query.EIO == 4 && req.query.transport == 'polling' && req.query.t != null && req.query.sid != null){
+			// if directory exists, delete it
 			let response = "OK"
 			res.send(response)		
 		}
@@ -185,4 +234,4 @@ function startServer(port){
 		})
 	})
 }
-startServer();
+//startServer();
