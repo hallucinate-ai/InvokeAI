@@ -1,3 +1,5 @@
+import jimp from 'jimp'
+
 export function main(request, socket){
 	// make websocket request to api.hallucinate.app and get the image
 	console.log("Generating image")
@@ -121,8 +123,8 @@ export function main(request, socket){
 					break
 	
 				case 'result':
-					if (fs.existsSync('output.jpg'))
-						fs.unlinkSync('output.jpg')
+					if (fs.existsSync('output.png'))
+						fs.unlinkSync('output.png')
 	
 					expectedBytes = payload.length
 					console.log('compute finished: expecting', expectedBytes, 'bytes')
@@ -133,25 +135,86 @@ export function main(request, socket){
 				case 'chunk':
 					let blob = Buffer.from(payload.blob, 'base64')
 	
-					fs.appendFileSync('output.jpg', blob)
+					fs.appendFileSync('output.png', blob)
 					expectedBytes -= blob.length
 	
 					console.log('received bytes:', expectedBytes, 'to go')
 	
 					if(expectedBytes <= 0){
+						let timestamp = Date.now()
 						console.log('done')
-						let imagedata = fs.readFileSync('output.jpg', {encoding: 'base64'})
-						let progressDict = {
-							"url": "data:image/png;base64," + imagedata,							
-							"isBase64": true,
-							"mtime": 0,
-							"metadata": {},
+						
+						let imagedata = fs.readFileSync(+ timestamp +'.png', {encoding: 'base64'})
+						//make a thumbnail with jimp
+						let thumbnail = Jimp.read(timestamp + '.png')
+						thumbnail.resize(256, 256)
+						thumbnail.write('./gallery/' + timestamp + "-"+ thumbnail + '.png')
+
+						if(!fs.existsSync('./gallery/metadata.json')){
+							let metadata = {}
+							fs.writeFileSync('./gallery/metadata.json', JSON.stringify(metadata))
+						}
+						if(fs.existsSync('./gallery/metadata.json')){
+							let metadata = fs.readFileSync('./gallery/metadata.json', 'utf8')
+							let imageMetadata =  {
+								"model": "stable diffusion",
+								"model_weights": "stable-diffusion-1.5",
+								"model_hash": "cc6cb27103417325ff94f52b7a5d2dde45a7515b25c255d8e396c90014281516",
+								"app_id": "invoke-ai/InvokeAI",
+								"app_version": "2.2.5",
+								"image": {
+								  "prompt": [
+									{
+									  "prompt": request["prompt"],
+									  "weight": 1
+									}
+								  ],
+								  "steps": request["steps"],
+								  "cfg_scale": request["cfg_scale"],
+								  "threshold": request["threshold"],
+								  "perlin": request["perlin"],
+								  "height": request["height"],
+								  "width": request["width"],
+								  "seed": request["seed"],
+								  "type": request["generation_mode"],
+								  "postprocessing": null,
+								  "sampler": request["sampler_name"],
+								  "variations": []
+								}
+							  }
+							metadata[timestamp] = imageMetadata
+							fs.writeFileSync('./gallery/metadata.json', JSON.stringify(metadata))
+							command = "s3cmd put ./gallery/metadata.json s3://gallery/metadata.json"
+							results = execute(command)
+						}
+						tokens = request["prompt"].split(" ")
+						for(let i = 0; i < tokens.length; i++){
+							if(tokens[i].startsWith("-")){
+								tokens[i] = tokens[i] + "</w>"
+							}
+						}
+						let mtime = fs.statSync('./gallery/' + timestamp + ".png").mtime
+						let template = {
+							"url": "gallery/" + timestamp + ".png",
+							"thumbnail": "gallery/" + timestamp + "-thumbnail.png",
+							"mtime": mtime,
+							"metadata":metadata,
+							"dreamPrompt": "\""+ request["prompt"]+"\" -s "+ request["steps"] +" -S "+ request["seed"]+ " -W " + request["width"] +" -H " + request["height"] +" -C " + request["cfg_scale"] + " -A " + request["attention_maps"] + " -P " + request["perlin"] + " -T " + request["threshold"] + " -G " + request["generation_mode"] + " -M " + request["sampler_name"],
 							"width": request["width"],
 							"height": request["height"],
-							"generationMode": request["generationMode"],
-							"boundingBox": null
+							"boundingBox": {
+							  "x": request["bounding_box"]["x"],
+							  "y": request["bounding_box"]["y"],
+							  "width": request["bounding_box"]["width"],
+							  "height": request["bounding_box"]["height"]
+							},
+							"generationMode": request["generation_mode"],
+							"attentionMaps": "data:image/png;base64,",
+							"tokens": tokens
 						}
-						socket.emit("progressUpdate", progressDict)
+
+						}
+						socket.emit("generationResult", template)
 						process.exit()
 					}
 

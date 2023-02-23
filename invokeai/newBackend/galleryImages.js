@@ -1,7 +1,7 @@
 function main(user){
 	let images = []
-	let files = fs.readdirSync('public/images/users/' + user + '/gallery')
-	let metadata = fs.readFileSync('public/images/users/' + user + '/gallery/metadata.json')
+	let files = fs.readdirSync('./gallery/' + user + '/')
+	let metadata = fs.readFileSync('./gallery/' + user + '/metadata.json')
 	metadata = JSON.parse(metadata)
 	files.forEach(file => {
 		if(!Object.keys(metadata).includes(file)){

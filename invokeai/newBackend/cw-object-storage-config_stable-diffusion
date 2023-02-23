@@ -1,0 +1,8 @@
+[default]
+access_key = OVEXCZJJQPUGXZOV
+secret_key = H1osbJRy3903PTMqyOAGD6MIohi4wLXGscnvMEduh10
+# The region for the host_bucket and host_base must be the same.
+host_base = object.ord1.coreweave.com
+host_bucket = %(bucket)s.object.ord1.coreweave.com
+check_ssl_certificate = True
+check_ssl_hostname = True
