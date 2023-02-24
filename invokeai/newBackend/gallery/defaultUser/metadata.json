@@ -1,0 +1,30 @@
+{ "0a0d6dd5-89b1-4d5e-b3a6-54866957d0bc" :
+  {
+    "model": "stable diffusion",
+    "model_weights": "stable-diffusion-1.5",
+    "model_hash": "cc6cb27103417325ff94f52b7a5d2dde45a7515b25c255d8e396c90014281516",
+    "app_id": "invoke-ai/InvokeAI",
+    "app_version": "2.2.5",
+    "image": {
+      "prompt": [
+        {
+          "prompt": "Underwater city",
+          "weight": 1
+        }
+      ],
+      "steps": 50,
+      "cfg_scale": 7.5,
+      "threshold": 0,
+      "perlin": 0,
+      "height": 512,
+      "width": 512,
+      "seed": 916798825,
+      "seamless": false,
+      "hires_fix": false,
+      "type": "txt2img",
+      "postprocessing": null,
+      "sampler": "k_lms",
+      "variations": []
+    }
+  }
+}

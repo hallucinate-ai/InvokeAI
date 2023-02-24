@@ -213,15 +213,12 @@ export function main(request, socket){
 							"tokens": tokens
 						}
 
-						}
 						socket.emit("generationResult", template)
-						process.exit()
 					}
-
 					break
+				}
+			})
 	
-			}
-		})
 	
 		if(context){
 			send({
@@ -251,11 +248,12 @@ export function main(request, socket){
 		})
 	
 		console.log('sent task:', task)
+		return output
+
 	})
-	
+
 	HallucinateAPI.on('close', code => {
 		console.log('socket closed: code', code)
 	})
 
-	return output
 }
