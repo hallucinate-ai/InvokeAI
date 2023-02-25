@@ -15,6 +15,12 @@ import * as getModelList from './getModelList.js'
 import { exec } from 'child_process';
 import axios from 'axios'
 import * as child_process from "child_process";
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import multipart from 'connect-multiparty';
+import Jimp from 'jimp';
+import os from 'os';
+import path from 'path'
 
 async function execute(command, args) {
     return new Promise((resolve, reject) => {
@@ -195,6 +201,7 @@ function requestModelChange(model){
 
 
 export function startServer(port){
+	let cwd = process.cwd()
 	//check if port within range 0-65535
 	if (port < 0 || port > 65535 || isNaN(port)){
 		port = 9090
@@ -203,6 +210,13 @@ export function startServer(port){
 	const app = express();
 	const server = createServer(app);
 	var socketio = new Server(server);
+	var multipartMiddleware = multipart();
+
+	app.use(express.json());
+	app.use(express.urlencoded());
+	app.use(multipartMiddleware);
+	//app.use(bodyParser.urlencoded({ extended: true }));
+	//app.use(bodyParser.json())
 	if (!fs.existsSync('./gallery')){
 		fs.mkdirSync('./gallery')
 	}
@@ -286,8 +300,49 @@ export function startServer(port){
 		// shut down the express server
 	});
 
-	app.get('/upload', (req, res) => {
+	app.post('/upload*', multipartMiddleware, (req, res) => {
+		let cwd = process.cwd()
+		let dir = cwd 
+		let sid = "defaultUser"
+		// get form data
+		let formData = req.query
+		let body = req.body
+		let data = body["data"]
+		let files = req.files
+		let file = {}
+		if("file" in files){
+			file = files["file"]
+		}
+		let fileName = file["name"]
+		let tmpPath = file["path"]
+		let type = file["type"]
+		// remove the .png extension from the file name
+		fileName = fileName.replace(".png", "")
 
+		let dstPath = dir + "/gallery/" + sid + "/" + fileName + "-uploaded" + ".png"
+		// copy the file from the temporary location to the intended location
+		fs.copyFileSync(tmpPath, dstPath)
+		fs.rmSync(tmpPath)
+		// create a thumbnail with jimp of the uploaded image
+		let thumbnail = "./gallery/" + sid + "/" + fileName + "-uploaded" + "-thumbnail" + ".png"
+		let imgData = Jimp.read(dstPath)
+		//resize the image to a maximum width of 200px and a maximum height of 200px
+		imgData.then(function (image) {
+			image.resize(256, 256)
+			image.write(thumbnail)
+		})
+		// upload the image to s3
+		command = "s3cmd --config=cw-object-storage-config_stable-diffusion put " + dstPath + " s3://gallery/" + sid + "/" + fileName + "-uploaded" + ".png"
+		results = execute("s3cmd", ["--config=cw-object-storage-config_stable-diffusion", "put", dstPath, "s3://gallery/" + sid + "/" + fileName + "-uploaded" + ".png"])
+		console.log(command)
+		let output = {
+			"height":imgData.height,
+			"mtime":fs.statSync(dstPath).mtimeMs,
+			"thumbnail":"outputs/defaultUser/" + fileName +  "-uploaded-thumbnail.png",
+			"url":"outputs/defaultUser/" + fileName+ "-uploaded.png",
+			"width":imgData.width
+		}
+		res.send(output)
 	});
 
 	app.get('/flaskwebgui-keep-server-alive', (req, res) => {
