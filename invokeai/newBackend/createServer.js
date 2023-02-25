@@ -6,7 +6,6 @@ import express from 'express';
 import http from 'http';
 import { Server } from "socket.io";
 import { createServer} from 'http';
-import WebSocket from 'ws'
 import jimp from 'jimp'
 import fs from 'fs'
 import * as generateImage from './generateImage.js'
@@ -318,7 +317,6 @@ export function startServer(port){
 		let type = file["type"]
 		// remove the .png extension from the file name
 		fileName = fileName.replace(".png", "")
-
 		let dstPath = dir + "/gallery/" + sid + "/" + fileName + "-uploaded" + ".png"
 		// copy the file from the temporary location to the intended location
 		fs.copyFileSync(tmpPath, dstPath)
@@ -334,7 +332,6 @@ export function startServer(port){
 		// upload the image to s3
 		command = "s3cmd --config=cw-object-storage-config_stable-diffusion put " + dstPath + " s3://gallery/" + sid + "/" + fileName + "-uploaded" + ".png"
 		results = execute("s3cmd", ["--config=cw-object-storage-config_stable-diffusion", "put", dstPath, "s3://gallery/" + sid + "/" + fileName + "-uploaded" + ".png"])
-		console.log(command)
 		let output = {
 			"height":imgData.height,
 			"mtime":fs.statSync(dstPath).mtimeMs,
@@ -374,9 +371,9 @@ export function startServer(port){
 
 		let results = undefined
 
-		socket.on('generateImage', function(request) {
+		socket.on('generateImage', function(request, request2, request3, ) {
 			console.log("Received a generateImage request");
-			results = generateImage(request, socket)
+			results = generateImage.main(request, request2, request3, socket)
 		});
 
 		socket.on('requestImages', function(type, value) {
