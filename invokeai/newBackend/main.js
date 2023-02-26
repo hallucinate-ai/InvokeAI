@@ -27,7 +27,7 @@ async function execute(command, args) {
 
 
 async function startServer() {
-    let dir = path.dirname(new URL(import.meta.url).pathname)
+    //let dir = path.dirname(new URL(import.meta.url).pathname)
 	//await execute('node', [ dir + '/createExpress.js'])
     createServer.startServer(9090)
 }

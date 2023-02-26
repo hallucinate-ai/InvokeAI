@@ -16,8 +16,7 @@ async function execute(command, args) {
             result = data.toString()
         })
         spawn.stderr.on('data', (error) => {
-			console.log(error)
-            //reject(Error(error.toString()))
+            reject(Error(error.toString()))
         })
         spawn.on('exit', code => {
             resolve({ code, result })
@@ -25,7 +24,7 @@ async function execute(command, args) {
     })
 }
 
-export function main(request, request2, request3, timestamp, socket){
+export function main(request, request2, request3, timestamp,){
 	// make websocket request to api.hallucinate.app and get the image
 	console.log("Generating image")
 	console.log(request)
@@ -33,42 +32,41 @@ export function main(request, request2, request3, timestamp, socket){
 	let id = Math.floor(Math.random() * 1000000000)
 	let cwd = process.cwd()
 	//let dir = path.dirname(new URL(import.meta.url).pathname)	let timestamp = Date.now()
-	let task = {
-		"command": "diffuse",
-		"model": 'stable-diffusion-v1.5',
-		"prompt": request["prompt"],
-		"width": request["width"],
-		"height": request["height"],
-		"sampler_name": 'k',
-		"sampler_args": {
-			"schedule": 'lms'
-		},
-		"cfg_scale": request["cfg_scale"],
-		"denoising_strength": request["strength"],
-		"steps": request["steps"],
-		"seed": request["seed"],
-		"timestamp": Date.now(),
-		"input_image": request["init_img"],
-		"mask_image": request["init_mask"],
-		"id": id
-	}
 	let context = ""
-	if (request["generation_mode"] != "txt2img"){
-		context = request["init_img"]
-		if(context != undefined){
-			context = context.replace(/^data:image\/\w+;base64,/, "")
+	let task = { }
+	if(request2 != undefined && request2 != null && request2 != "" && request2 != false){
+		if(request3 != undefined && request3 != null && request3 != "" && request3 != false){
+			task = {
+				"command": "diffuse",
+				"model": "gfpgan",
+				"denoising_strength": request["strength"],
+				"timestamp": Date.now(),
+				"input_image": request["init_img"],
+				"id": id
+			}
+			//context = fs.readFileSync(cwd + '/gallery/defaultUser/' + timestamp + '.png')
 		}
+		else {
+			task = {
+				"command": "diffuse",
+				"model": "realesrgan",
+				"denoising_strength": request["strength"],
+				"timestamp": Date.now(),
+				"input_image": request["init_img"],
+				"id": id
+			}
+			//context = fs.readFileSync(cwd + '/gallery/defaultUser/' + timestamp + '.png')
+		}
+		console.log("generating enhancement")
 	}
-	let mask = request["init_mask"]
-	if(mask  != undefined){
-		mask = mask.replace(/^data:image\/\w+;base64,/, "")
-	}
+
 	var output = {}
 	var HallucinateAPI = new WebSocket('wss://api.hallucinate.app')
 	const send = payload => HallucinateAPI.send(JSON.stringify(payload))
 
 	HallucinateAPI.on('open', () => {
 		let expectedBytes
+		
 		console.log('connection accepted')
 		HallucinateAPI.on('message', raw => {
 			let { event, ...payload } = JSON.parse(raw)
@@ -96,21 +94,16 @@ export function main(request, request2, request3, timestamp, socket){
 						"generationMode": request["generationMode"],
 						"boundingBox": null
 					}
-					let currentStatus = ""
-					if (request["generation_mode"] == "txt2img"){
-						let currentStatus = "common:statusGeneratingTextToImage"
-					} else if (request["generation_mode"] == "img2img"){
-						let currentStatus = "common:statusGeneratingImageToImage"
-					}
+					
 					socket.emit('IntermediateResult', progressDict);
 					let output = {
 						"currentStep": parseInt(request["steps"]) * payload.value,
 						"totalSteps": request["steps"],
 						"currentIteration": 1,
 						"totalIterations": 1,
-						"currentStatus": currentStatus,
+						"currentStatus": "common:statusPreparing",
 						"isProcessing": true,
-						"currentStatusHasSteps": true,
+						"currentStatusHasSteps": false,
 						"hasError": false
 					}
 					socket.emit("progressUpdate", output);
@@ -121,8 +114,8 @@ export function main(request, request2, request3, timestamp, socket){
 					break
 	
 				case 'result':
-					if (fs.existsSync('./gallery/defaultUser/' + timestamp + '.png'))
-						fs.unlinkSync('./gallery/defaultUser/' + timestamp + '.png')
+					if (fs.existsSync('./gallery/defaultUser/' + timestamp + '-upscaled.png'))
+						fs.unlinkSync('./gallery/defaultUser/' + timestamp + '-upscaled.png')
 	
 					expectedBytes = payload.length
 					console.log('compute finished: expecting', expectedBytes, 'bytes')
@@ -133,7 +126,7 @@ export function main(request, request2, request3, timestamp, socket){
 				case 'chunk':
 					let blob = Buffer.from(payload.blob, 'base64')
 	
-					fs.appendFileSync('./gallery/defaultUser/' + timestamp + '.png', blob)
+					fs.appendFileSync('./gallery/defaultUser/' + timestamp + '-upscaled.png', blob)
 					expectedBytes -= blob.length
 	
 					console.log('received bytes:', expectedBytes, 'to go')
@@ -141,27 +134,18 @@ export function main(request, request2, request3, timestamp, socket){
 					if(expectedBytes <= 0){
 						console.log('done')
 						
-						let imagedata = fs.readFileSync('./gallery/defaultUser/' + timestamp + '.png', {encoding: 'base64'})
+						let imagedata = fs.readFileSync('./gallery/defaultUser/' + timestamp + '.png' + timestamp + '.png', {encoding: 'base64'})
 						//make a thumbnail with jimp
-						let thumbnail = jimp.read('./gallery/defaultUser/' + timestamp + '.png').then(image => {
-							image.resize(256, jimp.AUTO)
-							image.getBase64(jimp.MIME_PNG, (err, src) => {
-								let thumbnail = src.replace(/^data:image\/\w+;base64,/, "")
-								// write the image to the gallery
-								if(!fs.existsSync(cwd + '/gallery/defaultUser/' + timestamp + "-thumbnail.png")){
-									fs.writeFileSync(cwd + '/gallery/defaultUser/' + timestamp + "-thumbnail.png", thumbnail, 'base64')
-								}
-							})
-						})
+						let thumbnail = Jimp.read(timestamp + '.png')
+						thumbnail.resize(256, 256)
+						thumbnail.write('./gallery/defaultUser/' + timestamp + "-"+ thumbnail + '.png')
 
 						if(!fs.existsSync('./gallery/defaultUser/metadata.json')){
 							let metadata = {}
 							fs.writeFileSync('./gallery/defaultUser/metadata.json', JSON.stringify(metadata))
 						}
-						let metadata = ""
 						if(fs.existsSync('./gallery/defaultUser/metadata.json')){
-							metadata = fs.readFileSync('./gallery/defaultUser/metadata.json', 'utf8')
-							metadata = JSON.parse(metadata)
+							let metadata = fs.readFileSync('./gallery/defaultUser/metadata.json', 'utf8')
 							let imageMetadata =  {
 								"model": "stable diffusion",
 								"model_weights": "stable-diffusion-1.5",
@@ -188,75 +172,37 @@ export function main(request, request2, request3, timestamp, socket){
 								  "variations": []
 								}
 							}
-							let index = timestamp.toString()
-							metadata[index] = {}
-							metadata[index] = imageMetadata
+							metadata[timestamp.toString()] = imageMetadata
 							fs.writeFileSync('./gallery/defaultUser/metadata.json', JSON.stringify(metadata))
-							let command = "s3cmd --config="+cwd+"/cw-object-storage-config_stable-diffusion sync " + cwd + "/gallery/defaultUser/metadata.json s3://gallery/defaultUser/metadata.json"
-							let results = child_process.execSync(command)
+							command = "s3cmd put ./gallery/defaultUser/metadata.json s3://gallery/metadata.json"
+							results = execute(command)
 						}
-						let tokens = request["prompt"].split(" ")
+						tokens = request["prompt"].split(" ")
 						for(let i = 0; i < tokens.length; i++){
 							if(tokens[i].startsWith("-")){
 								tokens[i] = tokens[i] + "</w>"
 							}
 						}
-						let mtime = fs.statSync('./gallery/defaultUser/' + timestamp + '.png').mtime
-						let bounding_box = {}
-						if (Object.keys(request).includes("bounding_box")){
-							bounding_box = request["bounding_box"]
-						}
-
-						let output2 = {
-							"currentStep": request["steps"],
-							"totalSteps": request["steps"],
-							"currentIteration": 1,
-							"totalIterations": 1,
-							"currentStatus": "common:statusGenerationComplete",
-							"isProcessing": true,
-							"currentStatusHasSteps": true,
-							"hasError": false
-						}
-						socket.emit("progressUpdate", output2);
-
-						
-						let output3 = {
-							"currentStep": request["steps"],
-							"totalSteps": request["steps"],
-							"currentIteration": 1,
-							"totalIterations": 1,
-							"currentStatus": "common:statusSavingImage",
-							"isProcessing": true,
-							"currentStatusHasSteps": true,
-							"hasError": false
-						}
-						socket.emit("progressUpdate", output3);
-
-						let output4 = {
-							"currentStep": 0,
-							"totalSteps": 0,
-							"currentIteration": 0,
-							"totalIterations": 0,
-							"currentStatus": "common:statusProcessingComplete",
-							"isProcessing": false,
-							"currentStatusHasSteps": true,
-							"hasError": false
-						}
-						socket.emit("progressUpdate", output4);
-
+						let mtime = fs.statSync('./gallery/' + timestamp + "-upscaled.png").mtime
 						let template = {
-							"url": "outputs/defaultUser/" + timestamp + ".png",
-							"thumbnail": "outputs/defaultUser/" + timestamp + "-thumbnail.png",
+							"url": "gallery/" + timestamp + ".png",
+							"thumbnail": "gallery/" + timestamp + "-thumbnail.png",
 							"mtime": mtime,
 							"metadata":metadata,
 							"dreamPrompt": "\""+ request["prompt"]+"\" -s "+ request["steps"] +" -S "+ request["seed"]+ " -W " + request["width"] +" -H " + request["height"] +" -C " + request["cfg_scale"] + " -A " + request["attention_maps"] + " -P " + request["perlin"] + " -T " + request["threshold"] + " -G " + request["generation_mode"] + " -M " + request["sampler_name"],
 							"width": request["width"],
 							"height": request["height"],
-							"boundingBox": bounding_box,
+							"boundingBox": {
+							  "x": request["bounding_box"]["x"],
+							  "y": request["bounding_box"]["y"],
+							  "width": request["bounding_box"]["width"],
+							  "height": request["bounding_box"]["height"]
+							},
 							"generationMode": request["generation_mode"],
 							"attentionMaps": "data:image/png;base64,",
 							"tokens": tokens
 						}
+						fs.writeFileSync('./gallery/defaultUser/' + timestamp + '-upscaled.png', JSON.stringify(template))
 						socket.emit("generationResult", template)
 					}
 					break
@@ -272,7 +218,7 @@ export function main(request, request2, request3, timestamp, socket){
 			})
 			console.log('sent context')
 		}
-	
+		let mask = ""
 		if(mask){
 			send({
 				command: 'upload_image',
@@ -281,9 +227,9 @@ export function main(request, request2, request3, timestamp, socket){
 			})
 			console.log('sent mask')
 		}
-	
-	
+		//context = fs.readFileSync(cwd + '/gallery/defaultUser/' + timestamp + '.png')
 		send({
+	
 			...task,
 			command: 'diffuse',
 			id: 'task',
@@ -299,5 +245,6 @@ export function main(request, request2, request3, timestamp, socket){
 	HallucinateAPI.on('close', code => {
 		console.log('socket closed: code', code)
 	})
+
 
 }

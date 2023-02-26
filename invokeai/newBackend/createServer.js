@@ -1,7 +1,5 @@
 import { resolve } from 'path'
 import sha1 from 'sha1';
-import { createHttpTerminator } from 'http-terminator';
-import killport from 'kill-port';
 import express from 'express';
 import http from 'http';
 import { Server } from "socket.io";
@@ -10,6 +8,7 @@ import jimp from 'jimp'
 import fs from 'fs'
 import * as generateImage from './generateImage.js'
 import * as galleryImages from './galleryImages.js'
+import * as enhanceImage from './enhanceImage.js'
 import * as getModelList from './getModelList.js'
 import { exec } from 'child_process';
 import axios from 'axios'
@@ -265,8 +264,13 @@ export function startServer(port){
 		let path = req.path
 		path = path.replace("/outputs/", "./gallery/")
 		//open the image
-		let image = fs.readFileSync(path)
-		res.send(image)
+		if (fs.existsSync(path) != false){
+			let image = fs.readFileSync(path)
+			res.send(image)
+		}
+		else{
+			res.send()
+		}
 	});	
 
 	let sid = ""
@@ -370,10 +374,16 @@ export function startServer(port){
 		});
 
 		let results = undefined
-
+		let results2 = undefined
 		socket.on('generateImage', function(request, request2, request3, ) {
 			console.log("Received a generateImage request");
-			results = generateImage.main(request, request2, request3, socket)
+			let timestamp = Date.now()
+			const response = ( async () => {
+				results = await generateImage.main(request, request2, request3, timestamp, socket)
+			})();
+			const response2 = ( async () => {
+				results2 = await enhanceImage.main(request, request2, request3, timestamp, socket)
+			})();
 		});
 
 		socket.on('requestImages', function(type, value) {
