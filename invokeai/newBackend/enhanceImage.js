@@ -24,38 +24,61 @@ async function execute(command, args) {
     })
 }
 
-export function main(request, request2, request3, timestamp,){
+export function main(request, request2, request3, timestamp, socket){
 	// make websocket request to api.hallucinate.app and get the image
-	console.log("Generating image")
-	console.log(request)
+	console.log("Enhancing image")
+	console.log(request2)
 	// generate a random id for the image
 	let id = Math.floor(Math.random() * 1000000000)
 	let cwd = process.cwd()
 	//let dir = path.dirname(new URL(import.meta.url).pathname)	let timestamp = Date.now()
 	let context = ""
 	let task = { }
-	if(request2 != undefined && request2 != null && request2 != "" && request2 != false){
-		if(request3 != undefined && request3 != null && request3 != "" && request3 != false){
-			task = {
-				"command": "diffuse",
-				"model": "gfpgan",
-				"denoising_strength": request["strength"],
-				"timestamp": Date.now(),
-				"input_image": request["init_img"],
-				"id": id
+	if(request2 != false){
+		if(request3 != false){
+			let type = request3["type"]
+			if (type == "codeformer"){
+				task = {
+					"command": "diffuse",
+					"model": type,
+					"codeformer_fidelity": request3["codeformer_fidelity"],
+					"face_strength": request3["strength"],
+					"timestamp": Date.now(),
+					"input_image": request["init_img"],
+					"id": id
+				}
+				if (Object.keys(request2).includes("level")){
+					task["level"] = request2["level"]
+					task["upscale_strength"] = request2["strength"]
+				}
 			}
-			//context = fs.readFileSync(cwd + '/gallery/defaultUser/' + timestamp + '.png')
+			else {
+				task = {
+					"command": "diffuse",
+					"model": type,
+					"denoising_strength": request3["strength"],
+					"timestamp": Date.now(),
+					"input_image": request["init_img"],
+					"id": id
+				}
+				if (Object.keys(request2).includes("level")){
+					task["level"] = request2["level"]
+					task["upscale_strength"] = request2["strength"]
+				}
+			}
+			context = fs.readFileSync(cwd + '/gallery/defaultUser/' + timestamp + '.png')
 		}
 		else {
 			task = {
 				"command": "diffuse",
-				"model": "realesrgan",
-				"denoising_strength": request["strength"],
+				"model": "real-esrgan",
+				"level": request2["level"],
+				"upscale_strength": request2["strength"],
 				"timestamp": Date.now(),
 				"input_image": request["init_img"],
 				"id": id
 			}
-			//context = fs.readFileSync(cwd + '/gallery/defaultUser/' + timestamp + '.png')
+			context = fs.readFileSync(cwd + '/gallery/defaultUser/' + timestamp + '.png')
 		}
 		console.log("generating enhancement")
 	}
@@ -134,18 +157,14 @@ export function main(request, request2, request3, timestamp,){
 					if(expectedBytes <= 0){
 						console.log('done')
 						
-						let imagedata = fs.readFileSync('./gallery/defaultUser/' + timestamp + '.png' + timestamp + '.png', {encoding: 'base64'})
-						//make a thumbnail with jimp
-						let thumbnail = Jimp.read(timestamp + '.png')
-						thumbnail.resize(256, 256)
-						thumbnail.write('./gallery/defaultUser/' + timestamp + "-"+ thumbnail + '.png')
-
 						if(!fs.existsSync('./gallery/defaultUser/metadata.json')){
 							let metadata = {}
 							fs.writeFileSync('./gallery/defaultUser/metadata.json', JSON.stringify(metadata))
 						}
+						let metadata = ""
 						if(fs.existsSync('./gallery/defaultUser/metadata.json')){
-							let metadata = fs.readFileSync('./gallery/defaultUser/metadata.json', 'utf8')
+							metadata = fs.readFileSync('./gallery/defaultUser/metadata.json', 'utf8')
+							metadata = JSON.parse(metadata)
 							let imageMetadata =  {
 								"model": "stable diffusion",
 								"model_weights": "stable-diffusion-1.5",
@@ -172,38 +191,56 @@ export function main(request, request2, request3, timestamp,){
 								  "variations": []
 								}
 							}
-							metadata[timestamp.toString()] = imageMetadata
+							let index = timestamp.toString()
+							metadata[index] = {}
+							metadata[index] = imageMetadata
 							fs.writeFileSync('./gallery/defaultUser/metadata.json', JSON.stringify(metadata))
-							command = "s3cmd put ./gallery/defaultUser/metadata.json s3://gallery/metadata.json"
-							results = execute(command)
-						}
-						tokens = request["prompt"].split(" ")
-						for(let i = 0; i < tokens.length; i++){
-							if(tokens[i].startsWith("-")){
-								tokens[i] = tokens[i] + "</w>"
+							let command = "s3cmd --config="+cwd+"/cw-object-storage-config_stable-diffusion sync " + cwd + "/gallery/defaultUser/metadata.json s3://gallery/defaultUser/metadata.json"
+							let results = child_process.execSync(command)
+					
+							let tokens = request["prompt"].split(" ")
+							for(let i = 0; i < tokens.length; i++){
+								if(tokens[i].startsWith("-")){
+									tokens[i] = tokens[i] + "</w>"
+								}
 							}
+							let mtime = fs.statSync('./gallery/defaultUser/' + timestamp + ".png").mtime
+							let bounding_box = {}
+							if (Object.keys(request).includes("bounding_box")){
+								bounding_box = request["bounding_box"]
+							}
+
+							let output4 = {
+								"currentStep": 0,
+								"totalSteps": 0,
+								"currentIteration": 0,
+								"totalIterations": 0,
+								"currentStatus": "common:statusProcessingComplete",
+								"isProcessing": false,
+								"currentStatusHasSteps": true,
+								"hasError": false
+							}
+							socket.emit("progressUpdate", output4);
+
+							let template = {
+								"url": "outputs/defaultUser/" + timestamp + ".png",
+								"thumbnail": "outputs/defaultUser/" + timestamp + "-thumbnail.png",
+								"mtime": mtime,
+								"metadata":metadata,
+								"dreamPrompt": "\""+ request["prompt"]+"\" -s "+ request["steps"] +" -S "+ request["seed"]+ " -W " + request["width"] +" -H " + request["height"] +" -C " + request["cfg_scale"] + " -A " + request["attention_maps"] + " -P " + request["perlin"] + " -T " + request["threshold"] + " -G " + request["generation_mode"] + " -M " + request["sampler_name"],
+								"width": request["width"],
+								"height": request["height"],
+								"boundingBox": bounding_box,
+								"generationMode": request["generation_mode"],
+								"attentionMaps": "data:image/png;base64,",
+								"tokens": tokens
+							}
+							fs.unlinkSync('./gallery/defaultUser/' + timestamp + ".png")
+							command = "mv " + cwd + "/gallery/defaultUser/" + timestamp + "-upscaled.png " + cwd + "/gallery/defaultUser/" + timestamp + ".png"
+							child_process.execSync(command)
+							//fs.writeFileSync('./gallery/defaultUser/metadata.json', JSON.stringify(template))
+							socket.emit("generationResult", template)
 						}
-						let mtime = fs.statSync('./gallery/' + timestamp + "-upscaled.png").mtime
-						let template = {
-							"url": "gallery/" + timestamp + ".png",
-							"thumbnail": "gallery/" + timestamp + "-thumbnail.png",
-							"mtime": mtime,
-							"metadata":metadata,
-							"dreamPrompt": "\""+ request["prompt"]+"\" -s "+ request["steps"] +" -S "+ request["seed"]+ " -W " + request["width"] +" -H " + request["height"] +" -C " + request["cfg_scale"] + " -A " + request["attention_maps"] + " -P " + request["perlin"] + " -T " + request["threshold"] + " -G " + request["generation_mode"] + " -M " + request["sampler_name"],
-							"width": request["width"],
-							"height": request["height"],
-							"boundingBox": {
-							  "x": request["bounding_box"]["x"],
-							  "y": request["bounding_box"]["y"],
-							  "width": request["bounding_box"]["width"],
-							  "height": request["bounding_box"]["height"]
-							},
-							"generationMode": request["generation_mode"],
-							"attentionMaps": "data:image/png;base64,",
-							"tokens": tokens
-						}
-						fs.writeFileSync('./gallery/defaultUser/' + timestamp + '-upscaled.png', JSON.stringify(template))
-						socket.emit("generationResult", template)
 					}
 					break
 				}

@@ -4,6 +4,7 @@ import fs from 'fs'
 import { spawn } from 'child_process'
 import { exec } from 'child_process';
 import * as child_process from "child_process";
+import * as enhanceImage from './enhanceImage.js'
 
 async function execute(command, args) {
     return new Promise((resolve, reject) => {
@@ -131,6 +132,7 @@ export function main(request, request2, request3, timestamp, socket){
 					break
 	
 				case 'chunk':
+					
 					let blob = Buffer.from(payload.blob, 'base64')
 	
 					fs.appendFileSync('./gallery/defaultUser/' + timestamp + '.png', blob)
@@ -141,6 +143,18 @@ export function main(request, request2, request3, timestamp, socket){
 					if(expectedBytes <= 0){
 						console.log('done')
 						
+						let output2 = {
+							"currentStep": request["steps"],
+							"totalSteps": request["steps"],
+							"currentIteration": 1,
+							"totalIterations": 1,
+							"currentStatus": "common:statusGenerationComplete",
+							"isProcessing": true,
+							"currentStatusHasSteps": true,
+							"hasError": false
+						}
+						socket.emit("progressUpdate", output2);
+
 						let imagedata = fs.readFileSync('./gallery/defaultUser/' + timestamp + '.png', {encoding: 'base64'})
 						//make a thumbnail with jimp
 						let thumbnail = jimp.read('./gallery/defaultUser/' + timestamp + '.png').then(image => {
@@ -207,18 +221,6 @@ export function main(request, request2, request3, timestamp, socket){
 							bounding_box = request["bounding_box"]
 						}
 
-						let output2 = {
-							"currentStep": request["steps"],
-							"totalSteps": request["steps"],
-							"currentIteration": 1,
-							"totalIterations": 1,
-							"currentStatus": "common:statusGenerationComplete",
-							"isProcessing": true,
-							"currentStatusHasSteps": true,
-							"hasError": false
-						}
-						socket.emit("progressUpdate", output2);
-
 						
 						let output3 = {
 							"currentStep": request["steps"],
@@ -232,32 +234,37 @@ export function main(request, request2, request3, timestamp, socket){
 						}
 						socket.emit("progressUpdate", output3);
 
-						let output4 = {
-							"currentStep": 0,
-							"totalSteps": 0,
-							"currentIteration": 0,
-							"totalIterations": 0,
-							"currentStatus": "common:statusProcessingComplete",
-							"isProcessing": false,
-							"currentStatusHasSteps": true,
-							"hasError": false
-						}
-						socket.emit("progressUpdate", output4);
+						let enhanceResults = enhanceImage.main(request, request2, request3, timestamp, socket)
+						//set timeout to 15 seconds
+						if(request2 == false && request3 == false){
 
-						let template = {
-							"url": "outputs/defaultUser/" + timestamp + ".png",
-							"thumbnail": "outputs/defaultUser/" + timestamp + "-thumbnail.png",
-							"mtime": mtime,
-							"metadata":metadata,
-							"dreamPrompt": "\""+ request["prompt"]+"\" -s "+ request["steps"] +" -S "+ request["seed"]+ " -W " + request["width"] +" -H " + request["height"] +" -C " + request["cfg_scale"] + " -A " + request["attention_maps"] + " -P " + request["perlin"] + " -T " + request["threshold"] + " -G " + request["generation_mode"] + " -M " + request["sampler_name"],
-							"width": request["width"],
-							"height": request["height"],
-							"boundingBox": bounding_box,
-							"generationMode": request["generation_mode"],
-							"attentionMaps": "data:image/png;base64,",
-							"tokens": tokens
+							let output4 = {
+								"currentStep": 0,
+								"totalSteps": 0,
+								"currentIteration": 0,
+								"totalIterations": 0,
+								"currentStatus": "common:statusProcessingComplete",
+								"isProcessing": false,
+								"currentStatusHasSteps": true,
+								"hasError": false
+							}
+							socket.emit("progressUpdate", output4);
+
+							let template = {
+								"url": "outputs/defaultUser/" + timestamp + ".png",
+								"thumbnail": "outputs/defaultUser/" + timestamp + "-thumbnail.png",
+								"mtime": mtime,
+								"metadata":metadata,
+								"dreamPrompt": "\""+ request["prompt"]+"\" -s "+ request["steps"] +" -S "+ request["seed"]+ " -W " + request["width"] +" -H " + request["height"] +" -C " + request["cfg_scale"] + " -A " + request["attention_maps"] + " -P " + request["perlin"] + " -T " + request["threshold"] + " -G " + request["generation_mode"] + " -M " + request["sampler_name"],
+								"width": request["width"],
+								"height": request["height"],
+								"boundingBox": bounding_box,
+								"generationMode": request["generation_mode"],
+								"attentionMaps": "data:image/png;base64,",
+								"tokens": tokens
+							}
+							socket.emit("generationResult", template)
 						}
-						socket.emit("generationResult", template)
 					}
 					break
 				}

@@ -381,9 +381,6 @@ export function startServer(port){
 			const response = ( async () => {
 				results = await generateImage.main(request, request2, request3, timestamp, socket)
 			})();
-			const response2 = ( async () => {
-				results2 = await enhanceImage.main(request, request2, request3, timestamp, socket)
-			})();
 		});
 
 		socket.on('requestImages', function(type, value) {
