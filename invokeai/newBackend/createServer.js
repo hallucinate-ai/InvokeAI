@@ -1,24 +1,23 @@
-import { resolve } from 'path'
+import { resolve } from 'path';
 import sha1 from 'sha1';
 import express from 'express';
 import http from 'http';
 import { Server } from "socket.io";
 import { createServer} from 'http';
-import jimp from 'jimp'
-import fs from 'fs'
-import * as generateImage from './generateImage.js'
-import * as galleryImages from './galleryImages.js'
-import * as enhanceImage from './enhanceImage.js'
-import * as getModelList from './getModelList.js'
+import jimp from 'jimp';
+import fs from 'fs';
+import * as generateImage from './generateImage.js';
+import * as galleryImages from './galleryImages.js';
 import { exec } from 'child_process';
-import axios from 'axios'
+import axios from 'axios';
 import * as child_process from "child_process";
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import multipart from 'connect-multiparty';
 import Jimp from 'jimp';
 import os from 'os';
-import path from 'path'
+import path from 'path';
+import { XMLHttpRequest } from 'xmlhttprequest'
 
 async function execute(command, args) {
     return new Promise((resolve, reject) => {
@@ -39,17 +38,42 @@ async function execute(command, args) {
     })
 }
 
-
 function systemConfig(t, socket){
-	let template ={
-		"model": "stable diffusion",
-		"model_weights": "stable-diffusion-1.5",
-		"model_hash": "cc6cb27103417325ff94f52b7a5d2dde45a7515b25c255d8e396c90014281516",
-		"app_id": "invoke-ai/InvokeAI",
-		"app_version": "2.2.5",
-		"model_list": {
-			"stable-diffusion-1.5": {
-				"status": "active",
+
+		let models = child_process.execSync('node getModelList.js')
+		models = JSON.parse(models)
+		let modelDict = {}
+		let modelNameDict = {}
+		let thisModels = models[3]
+		for( var model in thisModels){
+			let modelName = model
+			let thisModel = thisModels[model]
+			for (var modelVersion in thisModel){
+				let modelVersionName = modelVersion
+				let civitai = thisModel[modelVersion]
+				modelNameDict[civitai] = modelName + " " + modelVersionName 
+			}	
+		}
+	 	thisModels = models[0]
+
+		for (var model in thisModels){
+			let modelName = model
+			let width = thisModels[model]["baseResolution"][0]
+			let height = thisModels[model]["baseResolution"][0]
+			modelDict[modelNameDict[modelName]] = {
+				"status": "inactive",
+				"description": modelName,
+				"weights": "",
+				"config": "configs/stable-diffusion/v1-inference.yaml",
+				"width": width,
+				"height": height,
+				"vae": "",
+				"default": false
+			}
+		}
+
+		modelDict["stable-diffusion-1.5"] = {
+				"status": "inactive",
 				"description": "The newest Stable Diffusion version 1.5 weight file (4.27 GB)",
 				"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
 				"config": "configs/stable-diffusion/v1-inference.yaml",
@@ -57,31 +81,27 @@ function systemConfig(t, socket){
 				"height": 512,
 				"vae": "./models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
 				"default": true
-			},
-			"stable-diffusion-1.4": {
-				"status": "not loaded",
-				"description": "Stable Diffusion inference model version 1.4",
-				"weights": "models/ldm/stable-diffusion-v1/sd-v1-4.ckpt",
-				"config": "configs/stable-diffusion/v1-inference.yaml",
-				"width": 512,
-				"height": 512,
-				"vae": "models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
-				"default": false
-			},
-			"inpainting-1.5": {
-				"status": "not loaded",
-				"description": "RunwayML SD 1.5 model optimized for inpainting",
-				"weights": "models/ldm/stable-diffusion-v1/sd-v1-5-inpainting.ckpt",
-				"config": "configs/stable-diffusion/v1-inpainting-inference.yaml",
-				"width": 512,
-				"height": 512,
-				"vae": "models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
-				"default": false
-			}
-		},
+		}
+
+		let template ={
+		"model": "stable diffusion",
+		"model_weights": "stable-diffusion-1.5",
+		"model_hash": "cc6cb27103417325ff94f52b7a5d2dde45a7515b25c255d8e396c90014281516",
+		"app_id": "invoke-ai/InvokeAI",
+		"app_version": "2.2.5",
+		"model_list": modelDict,
 		"infill_methods": [
 			"tile"
 		]
+	}
+	let serverStatus = getServerStatus()
+	let workers = serverStatus["workers"]
+	for( var worker in workers){
+		let thisWorker = workers[worker]
+		let thisModel = thisWorker["model"]
+		if (Object.keys(template["model_list"]).includes(thisModel)){
+			template["model_list"][thisModel]["status"] = "active"
+		}
 	}
 	return template
 }
@@ -102,49 +122,6 @@ function message(t, socket){
 }
 
 function requestImages(type, sid, socket){
-	let template = {
-		"images": [
-		  {
-			"url": "outputs/000010.2bcb884f.947026880.png",
-			"thumbnail": "outputs/thumbnails/000010.2bcb884f.947026880.webp",
-			"mtime": 1676033828.7068207,
-			"metadata": {
-			  "model": "stable diffusion",
-			  "model_weights": "stable-diffusion-1.5",
-			  "model_hash": "cc6cb27103417325ff94f52b7a5d2dde45a7515b25c255d8e396c90014281516",
-			  "app_id": "invoke-ai/InvokeAI",
-			  "app_version": "2.2.5",
-			  "image": {
-				"prompt": [
-				  {
-					"prompt": "test",
-					"weight": 1
-				  }
-				],
-				"steps": 50,
-				"cfg_scale": 7.5,
-				"threshold": 0,
-				"perlin": 0,
-				"height": 512,
-				"width": 512,
-				"seed": 947026880,
-				"seamless": false,
-				"hires_fix": false,
-				"type": "txt2img",
-				"postprocessing": null,
-				"sampler": "k_lms",
-				"variations": []
-			  }
-			},
-			"dreamPrompt": "\"test\" -s 50 -S 947026880 -W 512 -H 512 -C 7.5 -A k_lms",
-			"width": 512,
-			"height": 512,
-			"category": "result"
-		  }
-		],
-		"areMoreImagesAvailable": false,
-		"category": "result"
-	  }
 	let response = {}
 	if (type == "user"){
 		response = galleryImages.main("user", undefined, socket)
@@ -154,45 +131,77 @@ function requestImages(type, sid, socket){
 	}
 
 	console.log(response)
-	console.log(template)
 	return response
 }
 
-function requestModelChange(model){
+
+function getServerStatus(){
+    let serverStatus = {}
+    let url = "https://api.hallucinate.app/status?pass=vim5fwekx9"
+    var request = new XMLHttpRequest();
+    request.open('GET', url, false);  // `false` makes the request synchronous
+    request.send(null);
+    if (request.status === 200) {
+        serverStatus = JSON.parse(request.responseText);
+    }
+    return serverStatus
+}
+
+
+
+function requestModelChange(model, socket){
+	let timestamp = Date.now()
+	let request ={
+		"prompt": "Initialize Model",
+		"width": 64,
+		"height": 64,
+		"cfg_scale": 1,
+		"strength": 0,
+		"steps": 1,
+		"seed": 0,
+		"timestamp": timestamp,
+		"init_img": "",
+		"init_mask": "",
+		"generation_mode": "txt2img"
+	}
+
+	let config = systemConfig(model, socket)
+
+	var  response = ( async () => {
+		results = await generateImage.main(request, false, false, timestamp, socket)
+		return
+	})();
+	let serverStatus = getServerStatus()
+	let workers = serverStatus["workers"]
+	for( var worker in workers){
+		let thisWorker = workers[worker]
+		let thisModel = thisWorker["model"]
+		if (Object.keys(config["model_list"]).includes(thisModel)){
+			config["model_list"][thisModel]["status"] = "active"
+		}
+	}
+	while(config["model_list"][model]["status"] != "active"){
+		serverStatus = getServerStatus()
+		let workers = serverStatus["workers"]
+		for( var worker in workers){
+			let thisWorker = workers[worker]
+			let thisModel = thisWorker["model"]
+			if (Object.keys(config["model_list"]).includes(thisModel)){
+				config["model_list"][thisModel]["status"] = "active"
+			}
+		}
+		let fiveMinutes = 1000 * 60 * 5;
+		setTimeout(function(){
+			let output = {
+				"model_name": model,
+				"model_list": config["model_list"],
+			}
+			return output
+		}, fiveMinutes)
+	}
 	let output = {
 		"model_name": model,
-		"model_list":{
-			"stable-diffusion-1.5": {
-				"status": "active",
-				"description": "The newest Stable Diffusion version 1.5 weight file (4.27 GB)",
-				"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
-				"config": "configs/stable-diffusion/v1-inference.yaml",
-				"width": 512,
-				"height": 512,
-				"vae": "./models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
-				"default": true
-			},
-			"stable-diffusion-1.4": {
-				"status": "not loaded",
-				"description": "Stable Diffusion inference model version 1.4",
-				"weights": "models/ldm/stable-diffusion-v1/sd-v1-4.ckpt",
-				"config": "configs/stable-diffusion/v1-inference.yaml",
-				"width": 512,
-				"height": 512,
-				"vae": "models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
-				"default": false
-			},
-			"inpainting-1.5": {
-				"status": "not loaded",
-				"description": "RunwayML SD 1.5 model optimized for inpainting",
-				"weights": "models/ldm/stable-diffusion-v1/sd-v1-5-inpainting.ckpt",
-				"config": "configs/stable-diffusion/v1-inpainting-inference.yaml",
-				"width": 512,
-				"height": 512,
-				"vae": "models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
-				"default": false
-			}
-		} 
+		"model_list": config["model_list"],
 	}
 	return output
 }
@@ -396,10 +405,10 @@ export function startServer(port){
 			}
 		});
 
-		socket.on('requestModelChange', function(user) {
+		socket.on('requestModelChange', function(model) {
 			console.log("Received a requestModelChange request");
-			let	output = requestModelChange(user, socket)
-			socket.emit('requestModelChange', output);
+			let	output = requestModelChange(model, socket)
+			socket.emit('modelChanged', output);
 		});
 
 		socket.on('sid', function(user) {
