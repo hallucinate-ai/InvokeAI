@@ -34,30 +34,43 @@ function addPerlinNoise(image, mask, width, height){
 
 
 	//var base64str="data:image/jpeg;base64," + image//base64 format of the image
-	var buf = Buffer.from(image, 'base64');
-	let output = jimp.read(buf, (err, image) => {
+	var bufimage = Buffer.from(image, 'base64');
+	var bufmask = Buffer.from(mask, 'base64');
+	let newImage = jimp.read(bufimage, (err, image) => {
 		if (err) throw err;
 		else {
-			for (let i = 0; i < width; i++){
-				for (let j = 0; j < height; j++){
-					let pixelColor = image.getPixelColor(i, j)
-					let r = (pixelColor >> 16) & 0xff
-					let g = (pixelColor >> 8) & 0xff
-					let b = pixelColor & 0xff
-					let a = (pixelColor >> 24) & 0xff
-					if (r == 0 && g == 0 && b == 0 && a == 0){
-						let perlinNoise = Math.floor(Math.random() * 255)
-						r =  Math.floor(Math.random() * 255)
-						g =  Math.floor(Math.random() * 255)
-						b =  Math.floor(Math.random() * 255)
-						a =  255
-						image.setPixelColor(jimp.rgbaToInt(r, g, b, a), i, j)
+			let newMask = jimp.read(bufmask, (err, maskImage) => {
+				if (err) throw err;
+				else {
+					for (let i = 0; i < width; i++){
+						for (let j = 0; j < height; j++){
+							let imagePixelColor = image.getPixelColor(i, j)
+							let r = (imagePixelColor >> 16) & 0xff
+							let g = (imagePixelColor >> 8) & 0xff
+							let b = imagePixelColor & 0xff
+							let a = (imagePixelColor >> 24) & 0xff
+							let maskPixelColor = maskImage.getPixelColor(i, j)
+							let r2 = (maskPixelColor >> 16) & 0xff
+							let g2 = (maskPixelColor >> 8) & 0xff
+							let b2 = maskPixelColor & 0xff
+							let a2 = (maskPixelColor >> 24) & 0xff
+							if (r == 0 && g == 0 && b == 0 && a == 0 && r2 == 255 && 255 == 0 && b2 == 255 && a2 == 255){
+								let perlinNoise = Math.floor(Math.random() * 255)
+								r =  Math.floor(Math.random() * 255)
+								g =  Math.floor(Math.random() * 255)
+								b =  Math.floor(Math.random() * 255)
+								a =  255
+								image.setPixelColor(jimp.rgbaToInt(r, g, b, a), i, j)
+							}
+						}
 					}
+				return image
 				}
-			}
+			})
 			image.write("addedPerlinNoise.png")
 			console.log()
 			//console.log( maskImage.getPixelColor(0, 0))
+			return image
 		}
 	}).then((image) => {
 		//return image
