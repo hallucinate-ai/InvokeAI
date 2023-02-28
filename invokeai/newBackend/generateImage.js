@@ -122,7 +122,7 @@ export function main(request, request2, request3, timestamp, socket){
 	if (request["generation_mode"] == "unifiedCanvas"){
 		context = context.replace(/^data:image\/\w+;base64,/, "")
 		mask = mask.replace(/^data:image\/\w+;base64,/, "")
-		context = addPerlinNoise(context, mask, request["width"], request["height"])[0]
+		context = addPerlinNoise(context, mask, request["width"], request["height"])
 		context = fs.readFileSync("addedPerlinNoise.png", {encoding: 'base64'})
 	}
 	var output = {}
