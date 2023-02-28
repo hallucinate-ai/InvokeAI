@@ -5,6 +5,8 @@ import { spawn } from 'child_process'
 import { exec } from 'child_process';
 import * as child_process from "child_process";
 import * as enhanceImage from './enhanceImage.js'
+import Jimp from 'jimp';
+
 
 async function execute(command, args) {
     return new Promise((resolve, reject) => {
@@ -24,6 +26,45 @@ async function execute(command, args) {
             resolve({ code, result })
         })
     })
+}
+
+function addPerlinNoise(image, mask, width, height){
+	// add perlin noise to the of the image that are transparent, and the parts of the mask that are black
+	// read base64 image data with jimp 
+
+
+	//var base64str="data:image/jpeg;base64," + image//base64 format of the image
+	var buf = Buffer.from(image, 'base64');
+	let output = jimp.read(buf, (err, image) => {
+		if (err) throw err;
+		else {
+			for (let i = 0; i < width; i++){
+				for (let j = 0; j < height; j++){
+					let pixelColor = image.getPixelColor(i, j)
+					let r = (pixelColor >> 16) & 0xff
+					let g = (pixelColor >> 8) & 0xff
+					let b = pixelColor & 0xff
+					let a = (pixelColor >> 24) & 0xff
+					if (r == 0 && g == 0 && b == 0 && a == 0){
+						let perlinNoise = Math.floor(Math.random() * 255)
+						r =  Math.floor(Math.random() * 255)
+						g =  Math.floor(Math.random() * 255)
+						b =  Math.floor(Math.random() * 255)
+						a =  255
+						image.setPixelColor(jimp.rgbaToInt(r, g, b, a), i, j)
+					}
+				}
+			}
+			image.write("addedPerlinNoise.png")
+			console.log()
+			//console.log( maskImage.getPixelColor(0, 0))
+		}
+	}).then((image) => {
+		//return image
+		return ([image, mask])
+	});
+	// read base64 image data with jimp
+	//addedPerlinNoise.write("addedPerlinNoise.png")
 }
 
 export function main(request, request2, request3, timestamp, socket){
@@ -60,9 +101,16 @@ export function main(request, request2, request3, timestamp, socket){
 			context = context.replace(/^data:image\/\w+;base64,/, "")
 		}
 	}
+
 	let mask = request["init_mask"]
 	if(mask  != undefined){
 		mask = mask.replace(/^data:image\/\w+;base64,/, "")
+	}
+	if (request["generation_mode"] == "unifiedCanvas"){
+		context = context.replace(/^data:image\/\w+;base64,/, "")
+		mask = mask.replace(/^data:image\/\w+;base64,/, "")
+		context = addPerlinNoise(context, mask, request["width"], request["height"])[0]
+		context = fs.readFileSync("addedPerlinNoise.png", {encoding: 'base64'})
 	}
 	var output = {}
 	var HallucinateAPI = new WebSocket('wss://api.hallucinate.app')
