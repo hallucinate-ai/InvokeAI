@@ -4,7 +4,8 @@ import fs from 'fs'
 import { spawn } from 'child_process'
 import { exec } from 'child_process';
 import * as child_process from "child_process";
-import * as enhanceImage from './enhanceImage.js'
+import * as upscale from './upscale.js'
+import * as fixfaces from './fixfaces.js'
 import Jimp from 'jimp';
 
 
@@ -31,8 +32,6 @@ async function execute(command, args) {
 function addPerlinNoise(image, mask, width, height){
 	// add perlin noise to the of the image that are transparent, and the parts of the mask that are black
 	// read base64 image data with jimp 
-
-
 	//var base64str="data:image/jpeg;base64," + image//base64 format of the image
 	var bufimage = Buffer.from(image, 'base64');
 	var bufmask = Buffer.from(mask, 'base64');
@@ -54,13 +53,15 @@ function addPerlinNoise(image, mask, width, height){
 							let g2 = (maskPixelColor >> 8) & 0xff
 							let b2 = maskPixelColor & 0xff
 							let a2 = (maskPixelColor >> 24) & 0xff
+							maskImage.setPixelColor(jimp.rgbaToInt(0, 0, 0, 255), i, j)
 							if (r == 0 && g == 0 && b == 0 && a == 0 && r2 == 255 && g2 == 255 && b2 == 255 && a2 == 255){
 								let perlinNoise = Math.floor(Math.random() * 255)
 								r =  Math.floor(Math.random() * 255)
 								g =  Math.floor(Math.random() * 255)
 								b =  Math.floor(Math.random() * 255)
-								a =  25
+								a =  255
 								image.setPixelColor(jimp.rgbaToInt(r, g, b, a), i, j)
+								maskImage.setPixelColor(jimp.rgbaToInt(255, 255, 255, 255), i, j)
 							}
 							else if ( a < 255 && r2 == 255 && 255 == 0 && b2 == 255 && a2 == 255){
 								let perlinNoise = Math.floor(Math.random() * 255)
@@ -70,9 +71,11 @@ function addPerlinNoise(image, mask, width, height){
 								b =  math.floor((b  * percent ) + ( Math.floor(Math.random() * 255) * (1 - percent)))
 								a =  255
 								image.setPixelColor(jimp.rgbaToInt(r, g, b, a), i, j)
+								maskImage.setPixelColor(jimp.rgbaToInt(255, 255, 255, math.floor(255 * (1 - percent)), i, j))
 							}
 						}
 					}
+					maskImage.write("maskImage.png")
 					image.write("addedPerlinNoise.png")
 				}
 			}).then((maskImage) => {
@@ -90,23 +93,77 @@ function addPerlinNoise(image, mask, width, height){
 	//addedPerlinNoise.write("addedPerlinNoise.png")
 }
 
-export function main(request, request2, request3, timestamp, socket){
+export function main(request, request2, request3, timestamp, uid, socket){
 	// make websocket request to api.hallucinate.app and get the image
 	console.log("Generating image")
 	console.log(request)
 	// generate a random id for the image
 	let id = Math.floor(Math.random() * 1000000000)
 	let cwd = process.cwd()
+	let model = 'stable-diffusion-v1.5'
+
+
+	const diffusers_samplers_allowed =  [
+		'k_lms',
+		'k_dpm_2',
+		'k_dpm_2_a',
+		'k_dpmpp_2',
+		'k_euler',
+		'k_euler_a',
+		'k_heun',
+	];
+	let sampler_class = "lms"
+	if (request["sampler_name"] != undefined){
+		let sampler = request["sampler_name"]
+		if (sampler == "k_dpm_2"){
+			sampler_class =""
+		}		
+		if (sampler == "k_dpm_2_a"){
+			sampler_class ="dpm_2_ancestral"
+		}
+		if (sampler == "k_dpmpp_2"){
+			sampler_class ="dpmpp_2m"
+		}
+		if (sampler == "k_euler"){
+			sampler_class ="euler"
+		}
+		if (sampler == "k_euler_a"){
+			sampler_class ="euler_ancestral"
+		}
+		if (sampler == "k_heun"){
+			sampler_class ="heun"
+		}
+	}
+
 	//let dir = path.dirname(new URL(import.meta.url).pathname)	let timestamp = Date.now()
+	if(!fs.existsSync(cwd + '/modelSelection.json')){
+		fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify({}))
+	}
+
+	if (uid == undefined || uid == null || uid == ""){
+		uid = "defaultUser"
+	}
+	let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
+	if (request["strength"] == undefined || request["generation_mode"] == "txt2img"){
+		request["strength"] = 1
+	}
+
+	if (Object.keys(modelSelection).includes(uid)){
+		model = modelSelection[uid]
+	}
+	if (request["init_img"] != undefined){
+		request["init_img"] = request["init_img"].replace("outputs", "gallery")
+	}
+
 	let task = {
 		"command": "diffuse",
-		"model": 'stable-diffusion-v1.5',
+		"model": model,
 		"prompt": request["prompt"],
 		"width": request["width"],
 		"height": request["height"],
 		"sampler_name": 'k',
 		"sampler_args": {
-			"schedule": 'lms'
+			"schedule": sampler_class
 		},
 		"cfg_scale": request["cfg_scale"],
 		"denoising_strength": request["strength"],
@@ -117,23 +174,29 @@ export function main(request, request2, request3, timestamp, socket){
 		"mask_image": request["init_mask"],
 		"id": id
 	}
+
 	let context = ""
 	if (request["generation_mode"] != "txt2img"){
 		context = request["init_img"]
 		if(context != undefined){
-			context = context.replace(/^data:image\/\w+;base64,/, "")
+			//context = context.replace(/^data:image\/\w+;base64,/, "")
+			context = fs.readFileSync(cwd + "/" + request["init_img"].replace("ouputs", "gallery"))
 		}
 	}
-
+	//if (request["generation_mode"] != "img2img"){
+	//	context = fs.readFileSync(cwd + "/" + request["init_img"])
+	//}
+	
 	let mask = request["init_mask"]
 	if(mask  != undefined){
 		mask = mask.replace(/^data:image\/\w+;base64,/, "")
 	}
 	if (request["generation_mode"] == "unifiedCanvas"){
-		context = context.replace(/^data:image\/\w+;base64,/, "")
-		mask = mask.replace(/^data:image\/\w+;base64,/, "")
 		context = addPerlinNoise(context, mask, request["width"], request["height"])
+
+		//fix async stuff
 		context = fs.readFileSync("addedPerlinNoise.png", {encoding: 'base64'})
+		mask = fs.readFileSync("maskImage.png", {encoding: 'base64'})
 	}
 	var output = {}
 	var HallucinateAPI = new WebSocket('wss://api.hallucinate.app')
@@ -305,7 +368,7 @@ export function main(request, request2, request3, timestamp, socket){
 						}
 						socket.emit("progressUpdate", output3);
 
-						let enhanceResults = enhanceImage.main(request, request2, request3, timestamp, socket)
+						let enhanceResults = upscale.main(request, request2, request3, timestamp, socket)
 						//set timeout to 15 seconds
 						if(request2 == false && request3 == false){
 

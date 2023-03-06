@@ -46,7 +46,7 @@ export async function main() {
 	let lastUpdated = fs.statSync(dir + "/cachedModelDict.json").mtime
 	let currentTimestamp = new Date()
 	let timeDiff = currentTimestamp.getTime() - lastUpdated.getTime()
-	let twentyfourHours = 24 * 60 * 60 * 1000
+	let twentyfourHours = 72 * 60 * 60 * 1000
 
 	if (timeDiff > twentyfourHours){
 		let endpoint = "https://civitai.com/api/v1/models";

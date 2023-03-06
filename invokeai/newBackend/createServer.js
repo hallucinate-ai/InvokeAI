@@ -38,7 +38,7 @@ async function execute(command, args) {
     })
 }
 
-function systemConfig(t, socket){
+function systemConfig(t, model, socket){
 
 		let models = child_process.execSync('node getModelList.js')
 		models = JSON.parse(models)
@@ -150,6 +150,7 @@ function getServerStatus(){
 
 
 function requestModelChange(model, socket){
+	let cwd = process.cwd()
 	let timestamp = Date.now()
 	let request ={
 		"prompt": "Initialize Model",
@@ -165,10 +166,12 @@ function requestModelChange(model, socket){
 		"generation_mode": "txt2img"
 	}
 
-	let config = systemConfig(model, socket)
+	let config = systemConfig(uid, model, socket)
+	
+	let uid = 'defaultUser'
 
 	var  response = ( async () => {
-		results = await generateImage.main(request, false, false, timestamp, socket)
+		results = await generateImage.main(request, false, false, timestamp, uid, socket)
 		return
 	})();
 	let serverStatus = getServerStatus()
@@ -199,6 +202,15 @@ function requestModelChange(model, socket){
 			return output
 		}, fiveMinutes)
 	}
+	if(!fs.existsSync(cur_dir + '/modelSelection.json')){
+		fs.writeFileSync(cur_dir + '/modelSelection.json', JSON.stringify({}))
+	}
+	if(uid == undefined || uid == "" || uid == null){
+		uid = "defaultUser"
+	}
+	let modelSelection = JSON.parse(fs.readFileSync(cur_dir + '/modelSelection.json'))
+	modelSelection[uid] = model
+	fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify(modelSelection))
 	let output = {
 		"model_name": model,
 		"model_list": config["model_list"],
@@ -372,7 +384,7 @@ export function startServer(port){
 			sid = sha1(timestamp).substring(0,20)
 		}
 		socket.emit('sid', sid)
-		let config = systemConfig()
+		let config = systemConfig(sid, "", socket)
 		socket.emit('systemConfig', config)
 		let images = requestImages("result", sid, socket)
 		socket.emit('galleryImages', images)
@@ -387,8 +399,9 @@ export function startServer(port){
 		socket.on('generateImage', function(request, request2, request3, ) {
 			console.log("Received a generateImage request");
 			let timestamp = Date.now()
+			let uid = 'defaultUser'
 			const response = ( async () => {
-				results = await generateImage.main(request, request2, request3, timestamp, socket)
+				results = await generateImage.main(request, request2, request3, timestamp, uid , socket)
 			})();
 		});
 
@@ -419,7 +432,7 @@ export function startServer(port){
 
 		socket.on('systemConfig', function(user) {
 			console.log("Received a systemConfig request");
-			let	output = systemConfig(t, socket)
+			let	output = systemConfig(t, "", socket)
 			socket.emit('systemConfig', output);
 		});
 
