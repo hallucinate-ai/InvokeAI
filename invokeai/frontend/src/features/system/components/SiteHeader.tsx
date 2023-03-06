@@ -35,7 +35,7 @@ const SiteHeader = () => {
         <img src={InvokeAILogo} alt="invoke-ai-logo" />
         <Flex alignItems="center" columnGap="0.6rem">
           <Text fontSize="1.4rem">
-            invoke <strong>ai</strong>
+            <strong>Hallucinate App</strong>
           </Text>
           <Text
             fontWeight="bold"
@@ -88,7 +88,7 @@ const SiteHeader = () => {
           fontSize={20}
           size={'sm'}
           icon={
-            <Link isExternal href="http://github.com/invoke-ai/InvokeAI/issues">
+            <Link isExternal href="https://github.com/hallucinate-ai/InvokeAI/">
               <FaBug />
             </Link>
           }
@@ -102,7 +102,7 @@ const SiteHeader = () => {
           fontSize={20}
           size={'sm'}
           icon={
-            <Link isExternal href="http://github.com/invoke-ai/InvokeAI">
+            <Link isExternal href="https://github.com/hallucinate-ai/InvokeAI">
               <FaGithub />
             </Link>
           }
@@ -116,7 +116,7 @@ const SiteHeader = () => {
           fontSize={20}
           size={'sm'}
           icon={
-            <Link isExternal href="https://discord.gg/ZmtBAhwWhy">
+            <Link isExternal href="https://discord.gg/UR8CfXDY">
               <FaDiscord />
             </Link>
           }

@@ -45,30 +45,30 @@ export const tabDict: Record<InvokeTabName, InvokeTabInfo> = {
     workarea: <UnifiedCanvasWorkarea />,
     tooltip: 'Unified Canvas',
   },
-  nodes: {
-    title: <NodesIcon fill={'black'} boxSize={'2.5rem'} />,
-    workarea: <NodesWIP />,
-    tooltip: 'Nodes',
-  },
-  postprocess: {
-    title: <PostprocessingIcon fill={'black'} boxSize={'2.5rem'} />,
-    workarea: <PostProcessingWIP />,
-    tooltip: 'Post Processing',
-  },
-  training: {
-    title: <TrainingIcon fill={'black'} boxSize={'2.5rem'} />,
-    workarea: <TrainingWIP />,
-    tooltip: 'Training',
-  },
+  //nodes: {
+  //  title: <NodesIcon fill={'black'} boxSize={'2.5rem'} />,
+  //  workarea: <NodesWIP />,
+  //  tooltip: 'Nodes',
+  //},
+  //postprocess: {
+  //  title: <PostprocessingIcon fill={'black'} boxSize={'2.5rem'} />,
+  //  workarea: <PostProcessingWIP />,
+  //  tooltip: 'Post Processing',
+  //},
+  //training: {
+  //  title: <TrainingIcon fill={'black'} boxSize={'2.5rem'} />,
+  //  workarea: <TrainingWIP />,
+  //  tooltip: 'Training',
+  //},
 };
 
 function updateTabTranslations() {
   tabDict.txt2img.tooltip = i18n.t('common:text2img');
   tabDict.img2img.tooltip = i18n.t('common:img2img');
   tabDict.unifiedCanvas.tooltip = i18n.t('common:unifiedCanvas');
-  tabDict.nodes.tooltip = i18n.t('common:nodes');
-  tabDict.postprocess.tooltip = i18n.t('common:postProcessing');
-  tabDict.training.tooltip = i18n.t('common:training');
+  //tabDict.nodes.tooltip = i18n.t('common:nodes');
+  //tabDict.postprocess.tooltip = i18n.t('common:postProcessing');
+  //tabDict.training.tooltip = i18n.t('common:training');
 }
 
 export default function InvokeTabs() {
