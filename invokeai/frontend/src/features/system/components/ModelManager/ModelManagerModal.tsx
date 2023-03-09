@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { ReactElement } from 'react';
 
-import CheckpointModelEdit from './CheckpointModelEdit';
+import CheckpointModelEdit from './CheckpointModelView';
 import DiffusersModelEdit from './DiffusersModelEdit';
 import ModelList from './ModelList';
 

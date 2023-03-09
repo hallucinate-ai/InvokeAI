@@ -83,36 +83,6 @@ export default function ModelListItem(props: ModelListItemProps) {
         >
           {t('modelmanager:load')}
         </Button>
-        <IAIIconButton
-          icon={<EditIcon />}
-          size={'sm'}
-          onClick={openModelHandler}
-          aria-label="Modify Config"
-          isDisabled={status === 'active' || isProcessing || !isConnected}
-          className=" modal-close-btn"
-        />
-        <IAIAlertDialog
-          title={t('modelmanager:deleteModel')}
-          acceptCallback={handleModelDelete}
-          acceptButtonText={t('modelmanager:delete')}
-          triggerComponent={
-            <IAIIconButton
-              icon={<DeleteIcon />}
-              size={'sm'}
-              aria-label={t('modelmanager:deleteConfig')}
-              isDisabled={status === 'active' || isProcessing || !isConnected}
-              className=" modal-close-btn"
-              style={{ backgroundColor: 'var(--btn-delete-image)' }}
-            />
-          }
-        >
-          <Flex rowGap={'1rem'} flexDirection="column">
-            <p style={{ fontWeight: 'bold' }}>{t('modelmanager:deleteMsg1')}</p>
-            <p style={{ color: 'var(--text-color-secondary' }}>
-              {t('modelmanager:deleteMsg2')}
-            </p>
-          </Flex>
-        </IAIAlertDialog>
       </Flex>
     </Flex>
   );

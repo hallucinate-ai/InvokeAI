@@ -57,7 +57,6 @@ export default function DiffusersModelEdit() {
       description: '',
       repo_id: '',
       path: '',
-      vae: { repo_id: '', path: '' },
       default: false,
       format: 'diffusers',
     });
@@ -81,14 +80,6 @@ export default function DiffusersModelEdit() {
           retrievedModel[openModel]?.repo_id !== 'None'
             ? retrievedModel[openModel]?.repo_id
             : '',
-        vae: {
-          repo_id: retrievedModel[openModel]?.vae?.repo_id
-            ? retrievedModel[openModel]?.vae?.repo_id
-            : '',
-          path: retrievedModel[openModel]?.vae?.path
-            ? retrievedModel[openModel]?.vae?.path
-            : '',
-        },
         default: retrievedModel[openModel]?.default,
         format: 'diffusers',
       });
@@ -102,8 +93,6 @@ export default function DiffusersModelEdit() {
 
     if (values.path === '') delete diffusersModelToEdit.path;
     if (values.repo_id === '') delete diffusersModelToEdit.repo_id;
-    if (values.vae.path === '') delete diffusersModelToEdit.vae.path;
-    if (values.vae.repo_id === '') delete diffusersModelToEdit.vae.repo_id;
 
     dispatch(addNewModel(values));
   };
@@ -203,57 +192,6 @@ export default function DiffusersModelEdit() {
                     )}
                   </VStack>
                 </FormControl>
-
-                {/* VAE Path */}
-                <FormControl
-                  isInvalid={!!errors.vae?.path && touched.vae?.path}
-                >
-                  <FormLabel htmlFor="vae.path" fontSize="sm">
-                    {t('modelmanager:vaeLocation')}
-                  </FormLabel>
-                  <VStack alignItems={'start'}>
-                    <Field
-                      as={IAIInput}
-                      id="vae.path"
-                      name="vae.path"
-                      type="text"
-                      width="lg"
-                    />
-                    {!!errors.vae?.path && touched.vae?.path ? (
-                      <FormErrorMessage>{errors.vae?.path}</FormErrorMessage>
-                    ) : (
-                      <FormHelperText margin={0}>
-                        {t('modelmanager:vaeLocationValidationMsg')}
-                      </FormHelperText>
-                    )}
-                  </VStack>
-                </FormControl>
-
-                {/* VAE Repo ID */}
-                <FormControl
-                  isInvalid={!!errors.vae?.repo_id && touched.vae?.repo_id}
-                >
-                  <FormLabel htmlFor="vae.repo_id" fontSize="sm">
-                    {t('modelmanager:vaeRepoID')}
-                  </FormLabel>
-                  <VStack alignItems={'start'}>
-                    <Field
-                      as={IAIInput}
-                      id="vae.repo_id"
-                      name="vae.repo_id"
-                      type="text"
-                      width="lg"
-                    />
-                    {!!errors.vae?.repo_id && touched.vae?.repo_id ? (
-                      <FormErrorMessage>{errors.vae?.repo_id}</FormErrorMessage>
-                    ) : (
-                      <FormHelperText margin={0}>
-                        {t('modelmanager:vaeRepoIDValidationMsg')}
-                      </FormHelperText>
-                    )}
-                  </VStack>
-                </FormControl>
-
                 <IAIButton
                   type="submit"
                   className="modal-close-btn"

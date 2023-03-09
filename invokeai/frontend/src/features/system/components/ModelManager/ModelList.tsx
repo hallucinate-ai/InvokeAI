@@ -181,14 +181,11 @@ const ModelList = () => {
         <Text fontSize={'1.4rem'} fontWeight="bold">
           {t('modelmanager:availableModels')}
         </Text>
-        <AddModel />
       </Flex>
-
       <IAIInput
         onChange={handleSearchFilter}
         label={t('modelmanager:search')}
       />
-
       <Flex
         flexDirection={'column'}
         gap={1}
@@ -196,23 +193,6 @@ const ModelList = () => {
         overflow={'scroll'}
         paddingRight="1rem"
       >
-        <Flex columnGap="0.5rem">
-          <ModelFilterButton
-            label={t('modelmanager:allModels')}
-            onClick={() => setIsSelectedFilter('all')}
-            isActive={isSelectedFilter === 'all'}
-          />
-          <ModelFilterButton
-            label={t('modelmanager:checkpointModels')}
-            onClick={() => setIsSelectedFilter('ckpt')}
-            isActive={isSelectedFilter === 'ckpt'}
-          />
-          <ModelFilterButton
-            label={t('modelmanager:diffusersModels')}
-            onClick={() => setIsSelectedFilter('diffusers')}
-            isActive={isSelectedFilter === 'diffusers'}
-          />
-        </Flex>
         {renderModelListItems}
       </Flex>
     </Flex>

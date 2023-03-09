@@ -166,7 +166,8 @@ export declare type Model = {
   description: string;
   weights: string;
   config?: string;
-  vae?: string;
+  thumbnail?: string;
+  //vae?: string;
   width?: number;
   height?: number;
   default?: boolean;
@@ -178,12 +179,14 @@ export declare type DiffusersModel = {
   description: string;
   repo_id?: string;
   path?: string;
-  vae?: {
-    repo_id?: string;
-    path?: string;
-  };
+  //vae?: {
+  //  repo_id?: string;
+  //  path?: string;
+  //};
   format?: string;
   default?: boolean;
+  thumbnail?: string;
+  config?: string;
 };
 
 export declare type ModelList = Record<string, Model & DiffusersModel>;
@@ -196,9 +199,10 @@ export declare type FoundModel = {
 export declare type InvokeModelConfigProps = {
   name: string | undefined;
   description: string | undefined;
+  thumbnail: string | undefined;
   config: string | undefined;
   weights: string | undefined;
-  vae: string | undefined;
+  //vae: string | undefined;
   width: number | undefined;
   height: number | undefined;
   default: boolean | undefined;
@@ -208,14 +212,15 @@ export declare type InvokeModelConfigProps = {
 export declare type InvokeDiffusersModelConfigProps = {
   name: string | undefined;
   description: string | undefined;
+  thumbnail: string | undefined;
   repo_id: string | undefined;
   path: string | undefined;
   default: boolean | undefined;
   format: string | undefined;
-  vae: {
-    repo_id: string | undefined;
-    path: string | undefined;
-  };
+  //vae: {
+  //  repo_id: string | undefined;
+  //  path: string | undefined;
+  //};
 };
 
 /**

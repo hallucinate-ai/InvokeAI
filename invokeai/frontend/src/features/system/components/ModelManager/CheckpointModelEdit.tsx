@@ -47,7 +47,7 @@ const selector = createSelector(
 const MIN_MODEL_SIZE = 64;
 const MAX_MODEL_SIZE = 2048;
 
-export default function CheckpointModelEdit() {
+export default function CheckpointModelView() {
   const { openModel, model_list } = useAppSelector(selector);
   const isProcessing = useAppSelector(
     (state: RootState) => state.system.isProcessing
@@ -61,9 +61,10 @@ export default function CheckpointModelEdit() {
     useState<InvokeModelConfigProps>({
       name: '',
       description: '',
+      thumbnail: '',
       config: 'configs/stable-diffusion/v1-inference.yaml',
       weights: '',
-      vae: '',
+      //vae: '',
       width: 512,
       height: 512,
       default: false,
@@ -78,9 +79,10 @@ export default function CheckpointModelEdit() {
       setEditModelFormValues({
         name: openModel,
         description: retrievedModel[openModel]?.description,
+        thumbnail: retrievedModel[openModel]?.thumbnail,
         config: retrievedModel[openModel]?.config,
         weights: retrievedModel[openModel]?.weights,
-        vae: retrievedModel[openModel]?.vae,
+        //vae: retrievedModel[openModel]?.vae,
         width: retrievedModel[openModel]?.width,
         height: retrievedModel[openModel]?.height,
         default: retrievedModel[openModel]?.default,
@@ -193,29 +195,6 @@ export default function CheckpointModelEdit() {
                     ) : (
                       <FormHelperText margin={0}>
                         {t('modelmanager:modelLocationValidationMsg')}
-                      </FormHelperText>
-                    )}
-                  </VStack>
-                </FormControl>
-
-                {/* VAE */}
-                <FormControl isInvalid={!!errors.vae && touched.vae}>
-                  <FormLabel htmlFor="vae" fontSize="sm">
-                    {t('modelmanager:vaeLocation')}
-                  </FormLabel>
-                  <VStack alignItems={'start'}>
-                    <Field
-                      as={IAIInput}
-                      id="vae"
-                      name="vae"
-                      type="text"
-                      width="lg"
-                    />
-                    {!!errors.vae && touched.vae ? (
-                      <FormErrorMessage>{errors.vae}</FormErrorMessage>
-                    ) : (
-                      <FormHelperText margin={0}>
-                        {t('modelmanager:vaeLocationValidationMsg')}
                       </FormHelperText>
                     )}
                   </VStack>
