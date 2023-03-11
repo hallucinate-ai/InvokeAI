@@ -39,8 +39,8 @@ async function execute(command, args) {
 }
 
 function systemConfig(t, model, socket){
-
-		let models = child_process.execSync('node getModelList.js')
+		let models = child_process.execSync('node getModelList.js', { stdio: 'ignore' })
+		models = fs.readFileSync("modelDict.json")
 		models = JSON.parse(models)
 		let modelDict = {}
 		let modelNameDict = {}
@@ -60,26 +60,32 @@ function systemConfig(t, model, socket){
 			let modelName = model
 			let width = thisModels[model]["baseResolution"][0]
 			let height = thisModels[model]["baseResolution"][0]
+			let thumbnail = thisModels[model]["thumbnail"]
+			let modelID = thisModels[model]["defaultCheckpoint"]
+			let website = thisModels[model]["website"]
 			modelDict[modelNameDict[modelName]] = {
 				"status": "inactive",
+				"modelID": modelID,
+				"website": website,
+				"thumbnail": thumbnail,
 				"description": modelName,
-				"weights": "",
 				"config": "configs/stable-diffusion/v1-inference.yaml",
 				"width": width,
 				"height": height,
-				"vae": "",
 				"default": false
 			}
 		}
 
 		modelDict["stable-diffusion-1.5"] = {
 				"status": "inactive",
-				"description": "The newest Stable Diffusion version 1.5 weight file (4.27 GB)",
-				"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
+				"description": "Stable Diffusion version 1.5",
+				"modelID": "v1-5-pruned-emaonly",
+				"website": "https://stability.ai/",
+				"thumbnail": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/1677792559545-55FBL2X2SFVHMKFGFYO1/2777127019_abstract_shapes__colorways__patterns_and_shapes__Partnership_Stability_and_Krikey_team_together__bes.png?format=750w",
+				//"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
 				"config": "configs/stable-diffusion/v1-inference.yaml",
 				"width": 512,
 				"height": 512,
-				"vae": "./models/ldm/stable-diffusion-v1/vae-ft-mse-840000-ema-pruned.ckpt",
 				"default": true
 		}
 
@@ -149,11 +155,12 @@ function getServerStatus(){
 
 
 
-function requestModelChange(model, socket){
+function requestModelChange(model, uid, socket){
 	let cwd = process.cwd()
 	let timestamp = Date.now()
 	let request ={
 		"prompt": "Initialize Model",
+		"model": model,
 		"width": 64,
 		"height": 64,
 		"cfg_scale": 1,
@@ -165,14 +172,30 @@ function requestModelChange(model, socket){
 		"init_mask": "",
 		"generation_mode": "txt2img"
 	}
-
+	if (uid == undefined){
+		uid = 'defaultUser'
+	}
 	let config = systemConfig(uid, model, socket)
-	
-	let uid = 'defaultUser'
-
+	let translatedModelName = model
+	let modelDict = fs.readFileSync("modelDict.json")
+	modelDict = JSON.parse(modelDict)
+	let thisModels = modelDict[3]
+	for( var modelName in thisModels){
+		let thisModel = thisModels[modelName]
+		if (model.includes(modelName) ){
+			for (var modelVersion in thisModel){
+				let modelVersionName = modelVersion
+				let civitai = thisModel[modelVersion]
+				if(model.includes(modelVersion)){
+					translatedModelName = civitai
+				}
+			}
+		}
+	}
+	request["model"] = translatedModelName
 	var  response = ( async () => {
 		results = await generateImage.main(request, false, false, timestamp, uid, socket)
-		return
+		return results
 	})();
 	let serverStatus = getServerStatus()
 	let workers = serverStatus["workers"]
@@ -420,7 +443,8 @@ export function startServer(port){
 
 		socket.on('requestModelChange', function(model) {
 			console.log("Received a requestModelChange request");
-			let	output = requestModelChange(model, socket)
+			let uid = 'defaultUser'
+			let	output = requestModelChange(model, uid, socket)
 			socket.emit('modelChanged', output);
 		});
 

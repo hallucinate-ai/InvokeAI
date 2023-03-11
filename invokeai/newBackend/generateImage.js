@@ -101,7 +101,9 @@ export function main(request, request2, request3, timestamp, uid, socket){
 	let id = Math.floor(Math.random() * 1000000000)
 	let cwd = process.cwd()
 	let model = 'stable-diffusion-v1.5'
-
+	if (request["model"] != undefined){
+		model = request["model"]
+	}
 
 	const diffusers_samplers_allowed =  [
 		'k_lms',

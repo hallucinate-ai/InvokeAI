@@ -46,8 +46,8 @@ export async function main() {
 	let lastUpdated = fs.statSync(dir + "/cachedModelDict.json").mtime
 	let currentTimestamp = new Date()
 	let timeDiff = currentTimestamp.getTime() - lastUpdated.getTime()
-	let twentyfourHours = 72 * 60 * 60 * 1000
-
+	let twentyfourHours = 24 * 60 * 60 * 1000
+	//twentyfourHours = 1
 	if (timeDiff > twentyfourHours){
 		let endpoint = "https://civitai.com/api/v1/models";
 		let queryParameters = { limit: 100, types: "Checkpoint", page: 1, sort: "Most Downloaded" };
@@ -66,7 +66,9 @@ export async function main() {
 		catch (error){
 			console.log(error);
 		}
-		data = results.data
+		if(Object.keys(results).includes("data")){
+			data = results.data
+		}
 		let items = data["items"]
 		let metadata = data["metadata"]
 
@@ -107,11 +109,39 @@ export async function main() {
 			//limit the length of the filename
 			formatName = formatName.substr(0,31);
 			var modelVersions = item["modelVersions"];
-			// sort modelVersions by updatedAt most recent first using datetime
 			modelVersions = modelVersions.sort(function(a,b){
 				return new Date(b.updatedAt) - new Date(a.updatedAt);
 			});
+			let modelThumbnails
+			let modelThumbnailUrls = []
+			let firstThumbnail = ""
+			let trainedWords = []
+			let website = "https://civitai.com/models/" + item["id"]
+			for(var k in modelVersions){
+				modelThumbnails = modelVersions[k]["images"]
+				for (var j in modelThumbnails){
+					let modelThumbnail = modelThumbnails[j]
+					if (modelThumbnail["width"] == 512 && modelThumbnail["height"] == 512){
+						modelThumbnailUrls.push(modelThumbnail["url"])
+					}
+					else{
+						modelThumbnailUrls.push(modelThumbnail["url"])
+					}
+				}
 
+			}
+			if (modelThumbnailUrls.length > 0){
+				firstThumbnail = modelThumbnailUrls[0]
+			}
+			for(var k in modelVersions){
+				let modelVersion = modelVersions[k]
+				if (modelVersion["trainedWords"].length > 0){
+					for(var j in modelVersion["trainedWords"]){
+						let trainedWord = modelVersion["trainedWords"][j]
+						trainedWords.push(trainedWord)
+					}
+				}
+			}
 			for(var j in  modelVersions){
 				let modelVersion = modelVersions[j]
 				let versionName = modelVersion["name"]
@@ -157,7 +187,7 @@ export async function main() {
 						}
 
 						let downloadUrl = fileDownloadUrl
-
+	
 						let appendDict = {
 							"repository": "endomorphosis/diffusionkit:" + formattedModelName,
 							"defaultCheckpoint" : formattedModelName,
@@ -173,7 +203,11 @@ export async function main() {
 							"modelGPU": 1,
 							"mx": 1,
 							"b": 1,
-							"minCuda": 11.7
+							"minCuda": 11.7,
+							"thumbnail": firstThumbnail,
+							"trainedWords": trainedWords,
+							"website": "https://civitai.com/models/"+item["id"],
+							"thumbnails": modelThumbnailUrls,
 						}
 						// if name in formattedModelNameDict keys
 						if (Object.keys(formattedModelNameDict).includes(name) == false){
@@ -230,7 +264,9 @@ export async function main() {
 					"modelGPU": 1,
 					"mx": 1,
 					"b": 1,
-					"minCuda": 11.7
+					"minCuda": 11.7,
+					"thumbnail": firstThumbnail,
+					"thumbnails": modelThumbnailUrls
 				}
 				let appendEnvList = {
 					"MODEL_NAME" : formatName,
@@ -256,4 +292,5 @@ export async function main() {
 
 main().then((result) => {
 	console.log(JSON.stringify(result));
+	return true;
 });

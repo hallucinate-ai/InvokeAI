@@ -67,19 +67,6 @@ export default function AddModel() {
 
   return (
     <>
-      <IAIButton
-        aria-label={t('modelmanager:addNewModel')}
-        tooltip={t('modelmanager:addNewModel')}
-        onClick={onOpen}
-        className="modal-close-btn"
-        size={'sm'}
-      >
-        <Flex columnGap={'0.5rem'} alignItems="center">
-          <FaPlus />
-          {t('modelmanager:addNew')}
-        </Flex>
-      </IAIButton>
-
       <Modal
         isOpen={isOpen}
         onClose={addModelModalClose}

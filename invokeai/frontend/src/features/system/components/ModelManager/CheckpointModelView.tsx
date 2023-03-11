@@ -129,13 +129,13 @@ export default function CheckpointModelView() {
                 >
                   <VStack alignItems={'start'}>
                     <HStack>
-                      <p width="200">Model ID</p>
+                      <p>Model&nbsp;ID&nbsp;</p>
                       <Field
                         as={IAIInput}
                         id="description"
                         name="modelID"
                         type="text"
-                        width="300px"
+                        width="430px"
                       />
                     </HStack>
                     <img src={editModelFormValues.thumbnail} />

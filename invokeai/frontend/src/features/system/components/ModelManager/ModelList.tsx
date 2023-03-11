@@ -149,14 +149,14 @@ const ModelList = () => {
                 backgroundColor="var(--background-color)"
                 padding="0.5rem 1rem"
                 borderRadius="0.5rem"
-                marginBottom="0.5rem"
+                margin="1rem 0"
                 width="max-content"
                 fontSize="14"
               >
-                {t('modelmanager:diffusersModels')}
+                {t('HuggingFace Diffusers')}
               </Text>
-              {diffusersModelListItemsToRender}
             </Box>
+            <Box>{diffusersModelListItemsToRender}</Box>
           </>
         )}
 
@@ -181,11 +181,14 @@ const ModelList = () => {
         <Text fontSize={'1.4rem'} fontWeight="bold">
           {t('modelmanager:availableModels')}
         </Text>
+        <AddModel />
       </Flex>
+
       <IAIInput
         onChange={handleSearchFilter}
         label={t('modelmanager:search')}
       />
+
       <Flex
         flexDirection={'column'}
         gap={1}
@@ -193,6 +196,23 @@ const ModelList = () => {
         overflow={'scroll'}
         paddingRight="1rem"
       >
+        <Flex columnGap="0.5rem">
+          <ModelFilterButton
+            label={t('modelmanager:allModels')}
+            onClick={() => setIsSelectedFilter('all')}
+            isActive={isSelectedFilter === 'all'}
+          />
+          <ModelFilterButton
+            label={t('modelmanager:checkpointModels')}
+            onClick={() => setIsSelectedFilter('ckpt')}
+            isActive={isSelectedFilter === 'ckpt'}
+          />
+          <ModelFilterButton
+            label={t('modelmanager:HuggingFace\nDiffusers')}
+            onClick={() => setIsSelectedFilter('ckpt')}
+            isActive={isSelectedFilter === 'ckpt'}
+          />
+        </Flex>
         {renderModelListItems}
       </Flex>
     </Flex>
