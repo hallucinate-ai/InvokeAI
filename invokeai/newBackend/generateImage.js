@@ -104,7 +104,9 @@ export function main(request, request2, request3, timestamp, uid, socket){
 	if (request["model"] != undefined){
 		model = request["model"]
 	}
-
+	if (request["seed"] ==  0 || request["seed"] == undefined){
+		request["seed"] = Math.floor(Math.random() * 100000)
+	}
 	const diffusers_samplers_allowed =  [
 		'k_lms',
 		'k_dpm_2',
@@ -188,7 +190,7 @@ export function main(request, request2, request3, timestamp, uid, socket){
 	//if (request["generation_mode"] != "img2img"){
 	//	context = fs.readFileSync(cwd + "/" + request["init_img"])
 	//}
-	
+
 	let mask = request["init_mask"]
 	if(mask  != undefined){
 		mask = mask.replace(/^data:image\/\w+;base64,/, "")

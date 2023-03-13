@@ -78,7 +78,7 @@ export default function ModelListItem(props: ModelListItemProps) {
         <Button
           size={'sm'}
           onClick={handleChangeModel}
-          isDisabled={status === 'active' || isProcessing || !isConnected}
+          //isDisabled={status === 'active' || isProcessing || !isConnected}
           className="modal-close-btn"
         >
           {t('modelmanager:load')}

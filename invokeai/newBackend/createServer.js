@@ -61,14 +61,19 @@ function systemConfig(t, model, socket){
 			let width = thisModels[model]["baseResolution"][0]
 			let height = thisModels[model]["baseResolution"][0]
 			let thumbnail = thisModels[model]["thumbnail"]
-			let modelID = thisModels[model]["defaultCheckpoint"]
+			let modelid = thisModels[model]["defaultCheckpoint"]
 			let website = thisModels[model]["website"]
+			let rating = thisModels[model]["rating"]
+			let ratingcount = thisModels[model]["ratingcount"]
 			modelDict[modelNameDict[modelName]] = {
 				"status": "inactive",
-				"modelID": modelID,
+				"modelid": modelid,
+				"rating": rating,
 				"website": website,
 				"thumbnail": thumbnail,
 				"description": modelName,
+				"rating": rating,
+				"ratingcount": ratingcount,
 				"config": "configs/stable-diffusion/v1-inference.yaml",
 				"width": width,
 				"height": height,
@@ -77,18 +82,31 @@ function systemConfig(t, model, socket){
 		}
 
 		modelDict["stable-diffusion-1.5"] = {
-				"status": "inactive",
+				"status": "active",
 				"description": "Stable Diffusion version 1.5",
-				"modelID": "v1-5-pruned-emaonly",
+				"modelid": "v1-5-pruned-emaonly",
 				"website": "https://stability.ai/",
 				"thumbnail": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/1677792559545-55FBL2X2SFVHMKFGFYO1/2777127019_abstract_shapes__colorways__patterns_and_shapes__Partnership_Stability_and_Krikey_team_together__bes.png?format=750w",
 				//"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
 				"config": "configs/stable-diffusion/v1-inference.yaml",
 				"width": 512,
+				"rating": 5,
+				"ratingCount": 1,
 				"height": 512,
 				"default": true
 		}
-
+		// sort modelDict by key active first
+		let activeModels = {}
+		let inactiveModels = {}
+		for (var model in modelDict){
+			if (modelDict[model]["status"] == "active"){
+				activeModels[model] = modelDict[model]
+			}
+			else{
+				inactiveModels[model] = modelDict[model]
+			}
+		}
+		modelDict = {...activeModels, ...inactiveModels}
 		let template ={
 		"model": "stable diffusion",
 		"model_weights": "stable-diffusion-1.5",
@@ -160,17 +178,26 @@ function requestModelChange(model, uid, socket){
 	let timestamp = Date.now()
 	let request ={
 		"prompt": "Initialize Model",
+		"iterations": 1,
+		"threshold": 0,
+		"perlin": 0,
+		"progress_images": false,
+		"progress_latents": true,
+		"save_intermediates": 5,
 		"model": model,
 		"width": 64,
 		"height": 64,
-		"cfg_scale": 1,
-		"strength": 0,
+		"cfg_scale": 10,
+		"sampler_name": 'k_dpmpp_2',
+		"strength": 1,
 		"steps": 1,
-		"seed": 0,
-		"timestamp": timestamp,
-		"init_img": "",
+		"seed": Math.floor(Math.random() * 1000000),
 		"init_mask": "",
+		"seamless": false,
+		"hires_fix": false,
+		"variation_amount": 0,
 		"generation_mode": "txt2img"
+
 	}
 	if (uid == undefined){
 		uid = 'defaultUser'
@@ -193,7 +220,9 @@ function requestModelChange(model, uid, socket){
 		}
 	}
 	request["model"] = translatedModelName
-	var  response = ( async () => {
+	let results = undefined
+	let results2 = undefined
+	const response2 = ( async () => {
 		results = await generateImage.main(request, false, false, timestamp, uid, socket)
 		return results
 	})();
@@ -206,7 +235,20 @@ function requestModelChange(model, uid, socket){
 			config["model_list"][thisModel]["status"] = "active"
 		}
 	}
-	while(config["model_list"][model]["status"] != "active"){
+	let queues = serverStatus["queue"]
+	let thisQueue = {}
+	for (var queue in queues){
+		let queueIndex = queues[queue]
+		let thisModel = queueIndex["model"]
+		if (thisModel == model){
+			thisQueue = queues[queue]
+		}
+	}
+	while(config["model_list"][model]["status"] != "active"  && Object.keys(thisQueue).length > 0){
+		// sleep for 5 seconds
+		let fiveSeconds = 1000 * 5;
+		setTimeout(function(){	}, fiveSeconds)
+
 		serverStatus = getServerStatus()
 		let workers = serverStatus["workers"]
 		for( var worker in workers){
@@ -225,13 +267,13 @@ function requestModelChange(model, uid, socket){
 			return output
 		}, fiveMinutes)
 	}
-	if(!fs.existsSync(cur_dir + '/modelSelection.json')){
-		fs.writeFileSync(cur_dir + '/modelSelection.json', JSON.stringify({}))
+	if(!fs.existsSync(cwd + '/modelSelection.json')){
+		fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify({}))
 	}
 	if(uid == undefined || uid == "" || uid == null){
 		uid = "defaultUser"
 	}
-	let modelSelection = JSON.parse(fs.readFileSync(cur_dir + '/modelSelection.json'))
+	let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
 	modelSelection[uid] = model
 	fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify(modelSelection))
 	let output = {

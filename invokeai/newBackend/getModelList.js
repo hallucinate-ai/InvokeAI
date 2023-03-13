@@ -43,7 +43,7 @@ export async function main() {
 		fs.writeFileSync(dir + "/modelDict.json", JSON.stringify({}))
 	}
 	// get the modified date of the cached model list
-	let lastUpdated = fs.statSync(dir + "/cachedModelDict.json").mtime
+	let lastUpdated = fs.statSync(dir + "/modelDict.json").mtime
 	let currentTimestamp = new Date()
 	let timeDiff = currentTimestamp.getTime() - lastUpdated.getTime()
 	let twentyfourHours = 24 * 60 * 60 * 1000
@@ -116,6 +116,8 @@ export async function main() {
 			let modelThumbnailUrls = []
 			let firstThumbnail = ""
 			let trainedWords = []
+			let rating = item["stats"]["rating"]
+			let ratingcount = item["stats"]["ratingCount"]
 			let website = "https://civitai.com/models/" + item["id"]
 			for(var k in modelVersions){
 				modelThumbnails = modelVersions[k]["images"]
@@ -205,9 +207,11 @@ export async function main() {
 							"b": 1,
 							"minCuda": 11.7,
 							"thumbnail": firstThumbnail,
-							"trainedWords": trainedWords,
-							"website": "https://civitai.com/models/"+item["id"],
 							"thumbnails": modelThumbnailUrls,
+							"trainedWords": trainedWords,
+							"rating": rating,
+							"ratingcount": ratingcount,
+							"website": "https://civitai.com/models/"+item["id"],
 						}
 						// if name in formattedModelNameDict keys
 						if (Object.keys(formattedModelNameDict).includes(name) == false){
@@ -265,7 +269,12 @@ export async function main() {
 					"mx": 1,
 					"b": 1,
 					"minCuda": 11.7,
+					"rating": rating,
+					"ratingcount": ratingcount,
 					"thumbnail": firstThumbnail,
+					"thumbnails": modelThumbnailUrls,
+					"trainedWords": trainedWords,
+					"website": "https://civitai.com/models/"+item["id"],
 					"thumbnails": modelThumbnailUrls
 				}
 				let appendEnvList = {

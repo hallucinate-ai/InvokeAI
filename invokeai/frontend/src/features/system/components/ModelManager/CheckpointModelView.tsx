@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from 'app/storeHooks';
 import { systemSelector } from 'features/system/store/systemSelectors';
 
 import {
+  Center,
   Flex,
   FormControl,
   FormErrorMessage,
@@ -27,6 +28,7 @@ import type { InvokeModelConfigProps } from 'app/invokeai';
 import type { RootState } from 'app/store';
 import type { FieldInputProps, FormikProps } from 'formik';
 import { isEqual, pickBy } from 'lodash';
+import { setHeight } from 'features/parameters/store/generationSlice';
 
 const selector = createSelector(
   [systemSelector],
@@ -62,8 +64,12 @@ export default function CheckpointModelView() {
       name: '',
       description: '',
       thumbnail: '',
+      website: '',
       config: 'configs/stable-diffusion/v1-inference.yaml',
       weights: '',
+      modelid: '',
+      rating: 0,
+      ratingcount: 0,
       //vae: '',
       width: 512,
       height: 512,
@@ -80,9 +86,12 @@ export default function CheckpointModelView() {
         name: openModel,
         description: retrievedModel[openModel]?.description,
         thumbnail: retrievedModel[openModel]?.thumbnail,
+        website: retrievedModel[openModel]?.website,
         config: retrievedModel[openModel]?.config,
+        rating: retrievedModel[openModel]?.rating,
+        ratingcount: retrievedModel[openModel]?.ratingcount,
         weights: retrievedModel[openModel]?.weights,
-        //vae: retrievedModel[openModel]?.vae,
+        modelid: retrievedModel[openModel]?.modelid,
         width: retrievedModel[openModel]?.width,
         height: retrievedModel[openModel]?.height,
         default: retrievedModel[openModel]?.default,
@@ -129,24 +138,39 @@ export default function CheckpointModelView() {
                 >
                   <VStack alignItems={'start'}>
                     <HStack>
-                      <p>Model&nbsp;ID&nbsp;</p>
-                      <Field
-                        as={IAIInput}
-                        id="description"
-                        name="modelID"
-                        type="text"
-                        width="430px"
-                      />
+                      <p>
+                        <b>Model&nbsp;ID&nbsp;</b>
+                      </p>
+                      <p>{editModelFormValues.modelid}</p>
                     </HStack>
-                    <img src={editModelFormValues.thumbnail} />
-                    <img src="http://192.168.0.35:5173/outputs/defaultUser/1678279845573.png" />
+                    {/* add an image of maximum height 512px with automatic padding*/}
+                    <img
+                      src={editModelFormValues.thumbnail}
+                      style={{
+                        maxWidth: '512px',
+                        maxHeight: '512px',
+                        alignSelf: 'center',
+                      }}
+                    />
                   </VStack>
                 </FormControl>
                 {/* Weights */}
-                <a href={editModelFormValues.weights}>
-                  <HStack>
-                    <img src="http://192.168.0.35:5173/outputs/defaultUser/civitai-uploaded.png" />
-                    <p> View More Models On Civit AI.</p>
+                <a href={editModelFormValues.website}>
+                  <HStack
+                    style={{
+                      alignSelf: 'center',
+                      width: 'fit-content',
+                      marginLeft: 'auto',
+                      marginRight: 'auto',
+                      paddingLeft: '5rem',
+                    }}
+                  >
+                    <img src="/civitai.png" />
+                    <VStack>
+                      <p>View On Civit AI.</p>
+                      <p>Rating {editModelFormValues.rating} / 5</p>
+                      <p>{editModelFormValues.ratingcount} ratings</p>
+                    </VStack>
                   </HStack>
                 </a>
               </VStack>

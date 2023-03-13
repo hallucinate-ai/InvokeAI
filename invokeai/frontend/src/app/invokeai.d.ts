@@ -167,6 +167,10 @@ export declare type Model = {
   weights: string;
   config?: string;
   thumbnail?: string;
+  website?: string;
+  rating?: number;
+  ratingcount?: number;
+  modelid?: string;
   //vae?: string;
   width?: number;
   height?: number;
@@ -179,6 +183,9 @@ export declare type DiffusersModel = {
   description: string;
   repo_id?: string;
   path?: string;
+  modelid?: string;
+  rating?: number;
+  ratingcount?: number;
   //vae?: {
   //  repo_id?: string;
   //  path?: string;
@@ -186,6 +193,8 @@ export declare type DiffusersModel = {
   format?: string;
   default?: boolean;
   thumbnail?: string;
+  website?: string;
+  modelid?: string;
   config?: string;
 };
 
@@ -200,8 +209,12 @@ export declare type InvokeModelConfigProps = {
   name: string | undefined;
   description: string | undefined;
   thumbnail: string | undefined;
+  modelid: string | undefined;
   config: string | undefined;
   weights: string | undefined;
+  website: string | undefined;
+  rating: number | undefined;
+  ratingcount: number | undefined;
   //vae: string | undefined;
   width: number | undefined;
   height: number | undefined;
@@ -213,6 +226,10 @@ export declare type InvokeDiffusersModelConfigProps = {
   name: string | undefined;
   description: string | undefined;
   thumbnail: string | undefined;
+  website: string | undefined;
+  modelid: string | undefined;
+  rating: number | undefined;
+  ratingcount: number | undefined;
   repo_id: string | undefined;
   path: string | undefined;
   default: boolean | undefined;
