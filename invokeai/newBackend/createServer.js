@@ -91,22 +91,39 @@ function systemConfig(t, model, socket){
 				"config": "configs/stable-diffusion/v1-inference.yaml",
 				"width": 512,
 				"rating": 5,
-				"ratingCount": 1,
+				"ratingcount": 20,
 				"height": 512,
 				"default": true
+		}
+		modelDict["stable-diffusion-2.1"] = {
+			"status": "inactive",
+			"description": "Stable Diffusion version 1.5",
+			"modelid": "v1-5-pruned-emaonly",
+			"website": "https://stability.ai/",
+			"thumbnail": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/1677792559545-55FBL2X2SFVHMKFGFYO1/2777127019_abstract_shapes__colorways__patterns_and_shapes__Partnership_Stability_and_Krikey_team_together__bes.png?format=750w",
+			//"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
+			"config": "configs/stable-diffusion/v1-inference.yaml",
+			"width": 512,
+			"rating": 5,
+			"ratingcount": 20,
+			"height": 512,
+			"default": true
 		}
 		// sort modelDict by key active first
 		let activeModels = {}
 		let inactiveModels = {}
 		for (var model in modelDict){
-			if (modelDict[model]["status"] == "active"){
-				activeModels[model] = modelDict[model]
-			}
-			else{
-				inactiveModels[model] = modelDict[model]
+			if (modelDict[model]['ratingcount'] >= 10){
+				if (modelDict[model]["status"] == "active"){
+					activeModels[model] = modelDict[model]
+				}
+				else{
+					inactiveModels[model] = modelDict[model]
+				}
 			}
 		}
 		modelDict = {...activeModels, ...inactiveModels}
+		fs.writeFileSync("filterdmodelDict.json", JSON.stringify(modelDict))
 		let template ={
 		"model": "stable diffusion",
 		"model_weights": "stable-diffusion-1.5",

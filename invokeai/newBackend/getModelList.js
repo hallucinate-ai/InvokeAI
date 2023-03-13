@@ -94,24 +94,51 @@ export async function main() {
 			var formatName = name.replace(" ", "-");
 			formatName = String(formatName).replace(/[^a-zA-Z0-9]/g, "-");
 			//replace capital letters with lower case letters]
-			formatName = formatName.toLowerCase();
-			formatName = formatName.replace(/[^\x00-\x7F]/g, "");
-			formatName = formatName.replace("(", "-")
-			formatName = formatName.replace("'", "-")
-			formatName = formatName.replace("'", "-")
-			formatName = formatName.replace("/", "-")
-			formatName = formatName.replace(")", "-")
-			formatName = formatName.replace(":", "-")
-			formatName = formatName.replace("_", "-")
-			formatName = formatName.replace(".", "-")
-			formatName = formatName.replace(",", "-")
-			formatName = formatName.replace(" ", "-")
+			//formatName = formatName.toLowerCase();
+			//formatName = formatName.replace(/[^\x00-\x7F]/g, "");
+			//formatName = formatName.replace("(", "-")
+			//formatName = formatName.replace("'", "-")
+			//formatName = formatName.replace("'", "-")
+			//formatName = formatName.replace("/", "-")
+			//formatName = formatName.replace(")", "-")
+			//formatName = formatName.replace(":", "-")
+			//formatName = formatName.replace("_", "-")
+			//formatName = formatName.replace(".", "-")
+			//formatName = formatName.replace(",", "-")
+			//formatName = formatName.replace(" ", "-")
 			//limit the length of the filename
-			formatName = formatName.substr(0,31);
+			//formatName = formatName.substr(0,31);
 			var modelVersions = item["modelVersions"];
 			modelVersions = modelVersions.sort(function(a,b){
 				return new Date(b.updatedAt) - new Date(a.updatedAt);
 			});
+			let inpaintingModel = {}
+			let firstModel = {}
+			let instructModel = {}
+			for( var j in modelVersions){
+				let modelVersion = modelVersions[j]
+				let modelVersionName = modelVersion["name"].toLowerCase()
+				if (modelVersionName.includes("inpainting") && Object.keys(inpaintingModel).length == 0){
+					inpaintingModel = modelVersion
+				}
+				if (modelVersionName.includes("instruct") && modelVersion && Object.keys(instructModel).length == 0){
+					instructModel = modelVersion
+				}
+				if (Object.keys(firstModel).length == 0 && !modelVersionName.includes("instruct") && !modelVersionName.includes("inpainting")){
+					firstModel = modelVersion
+				}
+			}
+			modelVersions = []
+			if (Object.keys(inpaintingModel).length > 0){
+				modelVersions.push(inpaintingModel)
+			}
+			if (Object.keys(instructModel).length > 0){
+				modelVersions.push(instructModel)
+			}			
+			if (Object.keys(firstModel).length > 0){
+				modelVersions.push(firstModel)
+			}
+
 			let modelThumbnails
 			let modelThumbnailUrls = []
 			let firstThumbnail = ""
@@ -147,19 +174,19 @@ export async function main() {
 			for(var j in  modelVersions){
 				let modelVersion = modelVersions[j]
 				let versionName = modelVersion["name"]
-				versionName = versionName.toLowerCase();
-				versionName = versionName.replace(/[^\x00-\x7F]/g, "");
-				versionName = versionName.replace("(", "-")
-				versionName = versionName.replace("'", "-")
-				versionName = versionName.replace("'", "-")
-				versionName = versionName.replace("/", "-")
-				versionName = versionName.replace(")", "-")
-				versionName = versionName.replace(":", "-")
-				versionName = versionName.replace("_", "-")
-				versionName = versionName.replace(".", "-")
-				versionName = versionName.replace(",", "-")
-				versionName = versionName.replace(" ", "-")
-				versionName = versionName.replace(" ", "-")
+				//versionName = versionName.toLowerCase();
+				//versionName = versionName.replace(/[^\x00-\x7F]/g, "");
+				//versionName = versionName.replace("(", "-")
+				//versionName = versionName.replace("'", "-")
+				//versionName = versionName.replace("'", "-")
+				//versionName = versionName.replace("/", "-")
+				//versionName = versionName.replace(")", "-")
+				//versionName = versionName.replace(":", "-")
+				//versionName = versionName.replace("_", "-")
+				//versionName = versionName.replace(".", "-")
+				//versionName = versionName.replace(",", "-")
+				//versionName = versionName.replace(" ", "-")
+				//versionName = versionName.replace(" ", "-")
 				let modelId = modelVersion["id"]
 				let baseModel = modelVersion["baseModel"]
 				let files = modelVersion["files"]
@@ -173,7 +200,7 @@ export async function main() {
 					let fileFormat = file["format"]
 					let fileDownloadUrl = file["downloadUrl"]
 					let virusScanResult = file["virusScanResult"]
-					if(virusScanResult == "Success" && fileFormat == "PickleTensor" && fileType == "Model"){
+					if(virusScanResult == "Success" && fileFormat == "PickleTensor" && ( fileType == "Model" || fileType == "Pruned Model" )){
 						formattedModelName = "civitai-" + fileDownloadUrl.split("?")[0].split("/").pop().split(".")[0]
 						let clipVersion
 						if(baseModel == "SD 1.5" || baseModel == "SD 1.4"){
