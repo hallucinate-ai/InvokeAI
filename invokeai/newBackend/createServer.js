@@ -81,10 +81,10 @@ function systemConfig(t, model, socket){
 			}
 		}
 
-		modelDict["stable-diffusion-1.5"] = {
+		modelDict["stable-diffusion-v1.5"] = {
 				"status": "active",
 				"description": "Stable Diffusion version 1.5",
-				"modelid": "v1-5-pruned-emaonly",
+				"modelid": "stable-diffusion-v1.5",
 				"website": "https://stability.ai/",
 				"thumbnail": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/1677792559545-55FBL2X2SFVHMKFGFYO1/2777127019_abstract_shapes__colorways__patterns_and_shapes__Partnership_Stability_and_Krikey_team_together__bes.png?format=750w",
 				//"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
@@ -95,10 +95,10 @@ function systemConfig(t, model, socket){
 				"height": 512,
 				"default": true
 		}
-		modelDict["stable-diffusion-2.1"] = {
+		modelDict["stable-diffusion-v2.1"] = {
 			"status": "inactive",
 			"description": "Stable Diffusion version 1.5",
-			"modelid": "v1-5-pruned-emaonly",
+			"modelid": "stable-diffusion-v1.5",
 			"website": "https://stability.ai/",
 			"thumbnail": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/1677792559545-55FBL2X2SFVHMKFGFYO1/2777127019_abstract_shapes__colorways__patterns_and_shapes__Partnership_Stability_and_Krikey_team_together__bes.png?format=750w",
 			//"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
@@ -237,10 +237,11 @@ function requestModelChange(model, uid, socket){
 		}
 	}
 	request["model"] = translatedModelName
+
 	let results = undefined
 	let results2 = undefined
 	const response2 = ( async () => {
-		results = await generateImage.main(request, false, false, timestamp, uid, socket)
+		results = await generateImage.main(request, false, false, timestamp, config, uid, socket)
 		return results
 	})();
 	let serverStatus = getServerStatus()
@@ -261,29 +262,6 @@ function requestModelChange(model, uid, socket){
 			thisQueue = queues[queue]
 		}
 	}
-	while(config["model_list"][model]["status"] != "active"  && Object.keys(thisQueue).length > 0){
-		// sleep for 5 seconds
-		let fiveSeconds = 1000 * 5;
-		setTimeout(function(){	}, fiveSeconds)
-
-		serverStatus = getServerStatus()
-		let workers = serverStatus["workers"]
-		for( var worker in workers){
-			let thisWorker = workers[worker]
-			let thisModel = thisWorker["model"]
-			if (Object.keys(config["model_list"]).includes(thisModel)){
-				config["model_list"][thisModel]["status"] = "active"
-			}
-		}
-		let fiveMinutes = 1000 * 60 * 5;
-		setTimeout(function(){
-			let output = {
-				"model_name": model,
-				"model_list": config["model_list"],
-			}
-			return output
-		}, fiveMinutes)
-	}
 	if(!fs.existsSync(cwd + '/modelSelection.json')){
 		fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify({}))
 	}
@@ -293,6 +271,7 @@ function requestModelChange(model, uid, socket){
 	let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
 	modelSelection[uid] = model
 	fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify(modelSelection))
+	config["model_list"][model]["status"] == "active" 
 	let output = {
 		"model_name": model,
 		"model_list": config["model_list"],
@@ -479,11 +458,28 @@ export function startServer(port){
 		let results = undefined
 		let results2 = undefined
 		socket.on('generateImage', function(request, request2, request3, ) {
+			let translatedModelName = request["model"]
+			let modelDict = fs.readFileSync("modelDict.json")
+			modelDict = JSON.parse(modelDict)
+			let thisModels = modelDict[3]
+			for( var modelName in thisModels){
+				let thisModel = thisModels[modelName]
+				if (model.includes(modelName) ){
+					for (var modelVersion in thisModel){
+						let modelVersionName = modelVersion
+						let civitai = thisModel[modelVersion]
+						if(model.includes(modelVersion)){
+							translatedModelName = civitai
+						}
+					}
+				}
+			}
+			request["model"] = translatedModelName
 			console.log("Received a generateImage request");
 			let timestamp = Date.now()
 			let uid = 'defaultUser'
 			const response = ( async () => {
-				results = await generateImage.main(request, request2, request3, timestamp, uid , socket)
+				results = await generateImage.main(request, request2, request3, timestamp, config, uid , socket)
 			})();
 		});
 
@@ -504,7 +500,7 @@ export function startServer(port){
 			console.log("Received a requestModelChange request");
 			let uid = 'defaultUser'
 			let	output = requestModelChange(model, uid, socket)
-			socket.emit('modelChanged', output);
+			//socket.emit('modelChanged', output);
 		});
 
 		socket.on('sid', function(user) {

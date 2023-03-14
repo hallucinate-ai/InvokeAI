@@ -93,7 +93,7 @@ function addPerlinNoise(image, mask, width, height){
 	//addedPerlinNoise.write("addedPerlinNoise.png")
 }
 
-export function main(request, request2, request3, timestamp, uid, socket){
+export function main(request, request2, request3, timestamp, config, uid, socket){
 	// make websocket request to api.hallucinate.app and get the image
 	console.log("Generating image")
 	console.log(request)
@@ -211,7 +211,52 @@ export function main(request, request2, request3, timestamp, uid, socket){
 		console.log('connection accepted')
 		HallucinateAPI.on('message', raw => {
 			let { event, ...payload } = JSON.parse(raw)
+			
+			if (task["prompt"] == "Initialize Model" && task["steps"] == 1){
+				switch (event) {
+					case 'progress':
+
+						break
+
+					case 'error':
+						console.log('error:', payload.message)
+						break
+		
+					case 'result':
+						if (fs.existsSync('./gallery/defaultUser/' + timestamp + '.png'))
+							fs.unlinkSync('./gallery/defaultUser/' + timestamp + '.png')
+		
+						expectedBytes = payload.length
+						console.log('compute finished: expecting', expectedBytes, 'bytes')
+						console.log(payload)
 	
+						break
+					case 'chunk':
+				
+					let blob = Buffer.from(payload.blob, 'base64')
+	
+					fs.appendFileSync('./gallery/defaultUser/' + timestamp + '.png', blob)
+					expectedBytes -= blob.length
+	
+					console.log('received bytes:', expectedBytes, 'to go')
+					let model = task["model"]
+					if (uid == undefined){
+						uid = 'defaultUser'
+					}
+					if(expectedBytes <= 0){
+						config["model_list"][model]["status"] == "active" 
+						let output = {
+							"model_name": model,
+							"model_list": config["model_list"],
+						}
+						socket.emit("modelChanged", output)
+					}
+				}
+
+				return true
+			}
+			
+
 			switch (event) {
 				case 'queue':
 					console.log('position in queue is:', payload.position)
@@ -438,7 +483,6 @@ export function main(request, request2, request3, timestamp, uid, socket){
 	
 		console.log('sent task:', task)
 		return output
-
 	})
 
 	HallucinateAPI.on('close', code => {
