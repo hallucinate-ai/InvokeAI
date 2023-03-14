@@ -458,6 +458,10 @@ export function startServer(port){
 		let results = undefined
 		let results2 = undefined
 		socket.on('generateImage', function(request, request2, request3, ) {
+			let modelSelection = fs.readFileSync("modelSelection.json")
+			modelSelection = JSON.parse(modelSelection)
+			let uid = "defaultUser"
+			let model = modelSelection[uid]
 			let translatedModelName = request["model"]
 			let modelDict = fs.readFileSync("modelDict.json")
 			modelDict = JSON.parse(modelDict)
@@ -474,10 +478,18 @@ export function startServer(port){
 					}
 				}
 			}
+			if (Object.keys(modelDict[0]).includes(translatedModelName)){
+				if(Object.keys(modelDict[0][translatedModelName]).includes("trainedWords")){
+					if(Object.keys(modelDict[0][translatedModelName]["trainedWords"]).length > 0){
+						let trainedWords = modelDict[0][translatedModelName]["trainedWords"]
+						let trainedWordsString = trainedWords.join(" ")
+						request["prompt"]  = request["prompt"] + " " + trainedWordsString
+					}
+				}
+			}
 			request["model"] = translatedModelName
 			console.log("Received a generateImage request");
 			let timestamp = Date.now()
-			let uid = 'defaultUser'
 			const response = ( async () => {
 				results = await generateImage.main(request, request2, request3, timestamp, config, uid , socket)
 			})();
