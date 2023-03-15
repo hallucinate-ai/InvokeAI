@@ -61,7 +61,7 @@ async function main() {
 				results = results.toString()
 				console.log(cwd)
 				console.log(results)
-				cmd = "rm -rf " + dst + "/model.ckpt"
+				cmd = "rm -rf " + dst 
 				results = await execSync(cmd)
 				results = results.toString()
 				console.log(cwd)
