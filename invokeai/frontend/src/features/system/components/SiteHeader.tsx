@@ -42,7 +42,7 @@ const SiteHeader = () => {
             color="var(--text-color-secondary)"
             marginTop="0.2rem"
           >
-            {appVersion}
+            {'Balance:' + ' ' + '0' + ' ' + ''}
           </Text>
         </Flex>
       </div>
