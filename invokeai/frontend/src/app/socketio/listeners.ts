@@ -62,18 +62,21 @@ const makeSocketIOListeners = (
       try {
         dispatch(setIsConnected(true));
         dispatch(setCurrentStatus(i18n.t('common:statusConnected')));
-        dispatch(requestSystemConfig());
+        dispatch(requestSystemConfig('test'));
         const gallery: GalleryState = getState().gallery;
-        const token = getState().system.token;
         if (gallery.categories.result.latest_mtime) {
-          dispatch(requestNewImages('result', token));
+          dispatch(requestNewImages('result'));
+          dispatch(requestNewImages('user'));
         } else {
-          dispatch(requestImages('result', token));
+          dispatch(requestImages('result'));
+          dispatch(requestImages('user'));
         }
         if (gallery.categories.user.latest_mtime) {
-          dispatch(requestNewImages('user', token));
+          dispatch(requestImages('result'));
+          dispatch(requestImages('user'));
         } else {
-          dispatch(requestImages('user', token));
+          dispatch(requestImages('result'));
+          dispatch(requestImages('user'));
         }
       } catch (e) {
         console.error(e);

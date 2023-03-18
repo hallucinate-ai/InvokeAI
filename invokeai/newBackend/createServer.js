@@ -38,7 +38,7 @@ async function execute(command, args) {
     })
 }
 
-function systemConfig(t, model, socket){
+function systemConfig(t, model, token, socket){
 		let models = child_process.execSync('node getModelList.js', { stdio: 'ignore' })
 		models = fs.readFileSync("modelDict.json")
 		models = JSON.parse(models)
@@ -131,19 +131,20 @@ function systemConfig(t, model, socket){
 		"app_id": "invoke-ai/InvokeAI",
 		"app_version": "2.2.5",
 		"model_list": modelDict,
-		"infill_methods": [
-			"tile"
-		]
-	}
-	let serverStatus = getServerStatus()
-	let workers = serverStatus["workers"]
-	for( var worker in workers){
-		let thisWorker = workers[worker]
-		let thisModel = thisWorker["model"]
-		if (Object.keys(template["model_list"]).includes(thisModel)){
-			template["model_list"][thisModel]["status"] = "active"
+		"infill_methods": ["tile"]
 		}
-	}
+		if(token != null && token != undefined && token != ""){
+			template["token"] = token
+		}
+		let serverStatus = getServerStatus()
+		let workers = serverStatus["workers"]
+		for( var worker in workers){
+			let thisWorker = workers[worker]
+			let thisModel = thisWorker["model"]
+			if (Object.keys(template["model_list"]).includes(thisModel)){
+				template["model_list"][thisModel]["status"] = "active"
+			}
+		}
 	return template
 }
 
@@ -162,13 +163,13 @@ function message(t, socket){
 	return template
 }
 
-function requestImages(type, sid, socket){
+function requestImages(type, sid, mtime, token, socket){
 	let response = {}
 	if (type == "user"){
-		response = galleryImages.main("user", undefined, socket)
+		response = galleryImages.main("user", mtime, token, socket)
 	}
 	else{
-		response = galleryImages.main("result", undefined, socket)
+		response = galleryImages.main("result", mtime, token, socket)
 	}
 
 	console.log(response)
@@ -219,7 +220,7 @@ function requestModelChange(model, uid, socket){
 	if (uid == undefined){
 		uid = 'defaultUser'
 	}
-	let config = systemConfig(uid, model, socket)
+	let config = systemConfig(uid, model, null, socket)
 	let translatedModelName = model
 	let modelDict = fs.readFileSync("modelDict.json")
 	modelDict = JSON.parse(modelDict)
@@ -445,11 +446,19 @@ export function startServer(port){
 			sid = sha1(timestamp).substring(0,20)
 		}
 		socket.emit('sid', sid)
-		let config = systemConfig(sid, "", socket)
+		let token
+		let config = systemConfig(sid, "", null, socket)
+		if (Object.keys(config).includes("token")){
+			token = config["token"]
+		}
+		else{
+			token = undefined
+		}
 		socket.emit('systemConfig', config)
-		let images = requestImages("result", sid, socket)
-		socket.emit('galleryImages', images)
-		
+		//let images = requestImages("result", sid, 0, token, socket)
+		//socket.emit('galleryImages', images)
+		//images = requestImages("user", sid, 0, token, socket)
+		//socket.emit('galleryImages', images)
 
 		socket.on('disconnect', () => {
 			console.log('Client disconnected');
@@ -495,22 +504,25 @@ export function startServer(port){
 			})();
 		});
 
-		socket.on('requestImages', function(type, value) {
+		socket.on('requestImages', function(type, mtime, token) {
 			if (type == "result"){
-				console.log("Received a requestImages request");
-				let output = galleryImages.main(type, value, socket)
-				socket.emit('requestImages', results);
+				console.log("Received a requestImages request for result images tokenID: " + token);
+				let output = galleryImages.main(type, mtime, token, socket)
+				socket.emit('galleryImages', output);
 			}
 			if (type == "user"){
-				console.log("Received a requestImages request");
-				let output = galleryImages.main(type, value, socket)
+				console.log("Received a requestImages request for user images tokenID: " + token);
+				let output = galleryImages.main(type, mtime, token, socket)
 				socket.emit('galleryImages', output);
 			}
 		});
 
-		socket.on('requestModelChange', function(model) {
+		socket.on('requestModelChange', function(model, token) {
 			console.log("Received a requestModelChange request");
 			let uid = 'defaultUser'
+			if (token != undefined){
+				uid = token
+			}
 			let	output = requestModelChange(model, uid, socket)
 			//socket.emit('modelChanged', output);
 		});
@@ -521,9 +533,9 @@ export function startServer(port){
 			socket.emit('sid', output);
 		});
 
-		socket.on('systemConfig', function(user) {
+		socket.on('systemConfig', function(user, token) {
 			console.log("Received a systemConfig request");
-			let	output = systemConfig(t, "", socket)
+			let	output = systemConfig(t, "", token, socket)
 			socket.emit('systemConfig', output);
 		});
 

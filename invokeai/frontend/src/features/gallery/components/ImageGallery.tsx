@@ -55,9 +55,9 @@ const GALLERY_TAB_WIDTHS: Record<
   txt2img: { galleryMinWidth: 200, galleryMaxWidth: 500 },
   img2img: { galleryMinWidth: 200, galleryMaxWidth: 500 },
   unifiedCanvas: { galleryMinWidth: 200, galleryMaxWidth: 200 },
-  nodes: { galleryMinWidth: 200, galleryMaxWidth: 500 },
+  /* nodes: { galleryMinWidth: 200, galleryMaxWidth: 500 }, 
   postprocess: { galleryMinWidth: 200, galleryMaxWidth: 500 },
-  training: { galleryMinWidth: 200, galleryMaxWidth: 500 },
+  training: { galleryMinWidth: 200, galleryMaxWidth: 500 }, */
 };
 
 const LIGHTBOX_GALLERY_WIDTH = 400;

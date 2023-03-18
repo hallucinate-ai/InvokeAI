@@ -1,8 +1,11 @@
 import fs from 'fs'
-
-export function main(type, value, socket){
-	let user = "defaultUser"
-
+export function main(type, mtime, token, socket){
+	let user = token
+	console.log("retrieve gallery images")
+	console.log("token: " + token)
+	if(token){
+		user = token
+	}
 	let images = []
 	if(!fs.existsSync('./gallery/' + user + '/')){
 		fs.mkdirSync('./gallery/' + user + '/')

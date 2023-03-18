@@ -180,7 +180,7 @@ export const socketioMiddleware = () => {
       }
 
       case 'socketio/requestSystemConfig': {
-        emitRequestSystemConfig();
+        emitRequestSystemConfig(action.payload);
         break;
       }
 

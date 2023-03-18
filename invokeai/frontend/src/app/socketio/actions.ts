@@ -26,7 +26,7 @@ export const cancelProcessing = createAction<undefined>(
   'socketio/cancelProcessing'
 );
 
-export const requestSystemConfig = createAction<undefined>(
+export const requestSystemConfig = createAction<string>(
   'socketio/requestSystemConfig'
 );
 

@@ -27,8 +27,8 @@ export interface SystemState
   extends InvokeAI.SystemStatus,
     InvokeAI.SystemConfig {
   shouldDisplayInProgressType: InProgressImageType;
-  token: string;
   log: Array<LogEntry>;
+  token: string;
   shouldShowLogViewer: boolean;
   isGFPGANAvailable: boolean;
   isESRGANAvailable: boolean;
@@ -59,7 +59,7 @@ const initialSystemState: SystemState = {
   log: [],
   shouldShowLogViewer: false,
   shouldDisplayInProgressType: 'latents',
-  token: 'defaultUser',
+  token: '',
   shouldDisplayGuides: true,
   isGFPGANAvailable: true,
   isESRGANAvailable: true,

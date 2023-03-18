@@ -146,25 +146,26 @@ const makeSocketIOEmitters = (
     },
     emitDeleteImage: (imageToDelete: InvokeAI.Image) => {
       const { url, uuid, category, thumbnail } = imageToDelete;
+      const token = getState().system.token;
       dispatch(removeImage(imageToDelete));
-      socketio.emit('deleteImage', url, thumbnail, uuid, category);
+      socketio.emit('deleteImage', url, thumbnail, uuid, token, category);
     },
     emitRequestImages: (category: GalleryCategory) => {
       const gallery: GalleryState = getState().gallery;
-      const { earliest_mtime } = gallery.categories[category];
       const token = getState().system.token;
+      const { earliest_mtime } = gallery.categories[category];
       socketio.emit('requestImages', category, earliest_mtime, token);
     },
     emitRequestNewImages: (category: GalleryCategory) => {
+      const token = getState().system.token;
       const gallery: GalleryState = getState().gallery;
       const { latest_mtime } = gallery.categories[category];
-      const token = getState().system.token;
       socketio.emit('requestLatestImages', category, latest_mtime, token);
     },
     emitCancelProcessing: () => {
       socketio.emit('cancel');
     },
-    emitRequestSystemConfig: () => {
+    emitRequestSystemConfig: (hello: string) => {
       const token = getState().system.token;
       socketio.emit('requestSystemConfig', token);
     },

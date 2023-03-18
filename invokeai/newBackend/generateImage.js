@@ -165,6 +165,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 		"prompt": request["prompt"],
 		"width": request["width"],
 		"height": request["height"],
+		"token": request["token"],
 		"sampler_name": 'k',
 		"sampler_args": {
 			"schedule": sampler_class
@@ -223,8 +224,8 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 						break
 		
 					case 'result':
-						if (fs.existsSync('./gallery/defaultUser/' + timestamp + '.png'))
-							fs.unlinkSync('./gallery/defaultUser/' + timestamp + '.png')
+						if (fs.existsSync('./gallery'+ request["token"] + '/'  + timestamp + '.png'))
+							fs.unlinkSync('./gallery/'+ request["token"] +'/' + timestamp + '.png')
 		
 						expectedBytes = payload.length
 						console.log('compute finished: expecting', expectedBytes, 'bytes')
@@ -235,7 +236,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 				
 					let blob = Buffer.from(payload.blob, 'base64')
 	
-					fs.appendFileSync('./gallery/defaultUser/' + timestamp + '.png', blob)
+					fs.appendFileSync('./gallery/'+ request["token"] +'/'+ timestamp + '.png', blob)
 					expectedBytes -= blob.length
 	
 					console.log('received bytes:', expectedBytes, 'to go')
@@ -305,8 +306,8 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 					break
 	
 				case 'result':
-					if (fs.existsSync('./gallery/defaultUser/' + timestamp + '.png'))
-						fs.unlinkSync('./gallery/defaultUser/' + timestamp + '.png')
+					if (fs.existsSync('./gallery/'+ request["token"] + '/' + timestamp + '.png'))
+						fs.unlinkSync('./gallery/'+ request["token"] + '/' + timestamp + '.png')
 	
 					expectedBytes = payload.length
 					console.log('compute finished: expecting', expectedBytes, 'bytes')
@@ -318,7 +319,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 					
 					let blob = Buffer.from(payload.blob, 'base64')
 	
-					fs.appendFileSync('./gallery/defaultUser/' + timestamp + '.png', blob)
+					fs.appendFileSync('./gallery/'+ request["token"] + '/' + timestamp + '.png', blob)
 					expectedBytes -= blob.length
 	
 					console.log('received bytes:', expectedBytes, 'to go')
@@ -338,26 +339,26 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 						}
 						socket.emit("progressUpdate", output2);
 
-						let imagedata = fs.readFileSync('./gallery/defaultUser/' + timestamp + '.png', {encoding: 'base64'})
+						let imagedata = fs.readFileSync('./gallery/'+ request["token"] + '/' + timestamp + '.png', {encoding: 'base64'})
 						//make a thumbnail with jimp
-						let thumbnail = jimp.read('./gallery/defaultUser/' + timestamp + '.png').then(image => {
+						let thumbnail = jimp.read('./gallery/'+ request["token"] +'/' + timestamp + '.png').then(image => {
 							image.resize(256, jimp.AUTO)
 							image.getBase64(jimp.MIME_PNG, (err, src) => {
 								let thumbnail = src.replace(/^data:image\/\w+;base64,/, "")
 								// write the image to the gallery
-								if(!fs.existsSync(cwd + '/gallery/defaultUser/' + timestamp + "-thumbnail.png")){
-									fs.writeFileSync(cwd + '/gallery/defaultUser/' + timestamp + "-thumbnail.png", thumbnail, 'base64')
+								if(!fs.existsSync(cwd + '/gallery/'+ request["token"] + '/' + timestamp + "-thumbnail.png")){
+									fs.writeFileSync(cwd + '/gallery/'+ request["token"] +'/' + timestamp + "-thumbnail.png", thumbnail, 'base64')
 								}
 							})
 						})
 
-						if(!fs.existsSync('./gallery/defaultUser/metadata.json')){
+						if(!fs.existsSync('./gallery/'+ request["token"] +'/metadata.json')){
 							let metadata = {}
-							fs.writeFileSync('./gallery/defaultUser/metadata.json', JSON.stringify(metadata))
+							fs.writeFileSync('./gallery/'+ request["token"] +'/metadata.json', JSON.stringify(metadata))
 						}
 						let metadata = ""
-						if(fs.existsSync('./gallery/defaultUser/metadata.json')){
-							metadata = fs.readFileSync('./gallery/defaultUser/metadata.json', 'utf8')
+						if(fs.existsSync('./gallery/'+ request["token"] +'/metadata.json')){
+							metadata = fs.readFileSync('./gallery/'+ request["token"] +'/metadata.json', 'utf8')
 							metadata = JSON.parse(metadata)
 							let imageMetadata =  {
 								"model": "stable diffusion",
@@ -388,8 +389,8 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 							let index = timestamp.toString()
 							metadata[index] = {}
 							metadata[index] = imageMetadata
-							fs.writeFileSync('./gallery/defaultUser/metadata.json', JSON.stringify(metadata))
-							let command = "s3cmd --config="+cwd+"/cw-object-storage-config_stable-diffusion sync " + cwd + "/gallery/defaultUser/metadata.json s3://gallery/defaultUser/metadata.json"
+							fs.writeFileSync('./gallery/'+ request["token"] +'/metadata.json', JSON.stringify(metadata))
+							let command = "s3cmd --config="+cwd+"/cw-object-storage-config_stable-diffusion sync " + cwd + "/gallery/"+ request["token"] + "/metadata.json s3://gallery/"+ request["token"] + "/metadata.json"
 							let results = child_process.execSync(command)
 						}
 						let tokens = request["prompt"].split(" ")
@@ -398,7 +399,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 								tokens[i] = tokens[i] + "</w>"
 							}
 						}
-						let mtime = fs.statSync('./gallery/defaultUser/' + timestamp + '.png').mtime
+						let mtime = fs.statSync('./gallery/'+ request["token"] + '/' + timestamp + '.png').mtime
 						let bounding_box = {}
 						if (Object.keys(request).includes("bounding_box")){
 							bounding_box = request["bounding_box"]
@@ -434,8 +435,8 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 							socket.emit("progressUpdate", output4);
 
 							let template = {
-								"url": "outputs/defaultUser/" + timestamp + ".png",
-								"thumbnail": "outputs/defaultUser/" + timestamp + "-thumbnail.png",
+								"url": "outputs/"+ request["token"] + "/" + timestamp + ".png",
+								"thumbnail": "outputs/" + request["token"] + '/' + timestamp + "-thumbnail.png",
 								"mtime": mtime,
 								"metadata":metadata,
 								"dreamPrompt": "\""+ request["prompt"]+"\" -s "+ request["steps"] +" -S "+ request["seed"]+ " -W " + request["width"] +" -H " + request["height"] +" -C " + request["cfg_scale"] + " -A " + request["attention_maps"] + " -P " + request["perlin"] + " -T " + request["threshold"] + " -G " + request["generation_mode"] + " -M " + request["sampler_name"],

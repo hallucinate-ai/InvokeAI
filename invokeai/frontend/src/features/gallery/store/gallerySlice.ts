@@ -11,6 +11,7 @@ export type AddImagesPayload = {
   images: Array<InvokeAI.Image>;
   areMoreImagesAvailable: boolean;
   category: GalleryCategory;
+  token: string;
 };
 
 type GalleryImageObjectFitType = 'contain' | 'cover';
@@ -19,6 +20,7 @@ export type Gallery = {
   images: InvokeAI.Image[];
   latest_mtime?: number;
   earliest_mtime?: number;
+  token: string;
   areMoreImagesAvailable: boolean;
 };
 

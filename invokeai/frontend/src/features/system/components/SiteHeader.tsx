@@ -41,8 +41,9 @@ const SiteHeader = () => {
             fontWeight="bold"
             color="var(--text-color-secondary)"
             marginTop="0.2rem"
+            fontSize={'1.2rem'}
           >
-            {'Balance:' + ' ' + '0' + ' ' + ''}
+            {'Balance:' + ' ' + '∞' + ' ' + ''}
           </Text>
         </Flex>
       </div>
