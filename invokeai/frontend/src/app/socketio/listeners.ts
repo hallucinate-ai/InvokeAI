@@ -64,17 +64,16 @@ const makeSocketIOListeners = (
         dispatch(setCurrentStatus(i18n.t('common:statusConnected')));
         dispatch(requestSystemConfig());
         const gallery: GalleryState = getState().gallery;
-
+        const token = getState().system.token;
         if (gallery.categories.result.latest_mtime) {
-          dispatch(requestNewImages('result'));
+          dispatch(requestNewImages('result', token));
         } else {
-          dispatch(requestImages('result'));
+          dispatch(requestImages('result', token));
         }
-
         if (gallery.categories.user.latest_mtime) {
-          dispatch(requestNewImages('user'));
+          dispatch(requestNewImages('user', token));
         } else {
-          dispatch(requestImages('user'));
+          dispatch(requestImages('user', token));
         }
       } catch (e) {
         console.error(e);

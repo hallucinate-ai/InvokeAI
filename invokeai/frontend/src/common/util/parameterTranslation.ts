@@ -34,6 +34,7 @@ export type BackendGenerationParameters = {
   iterations: number;
   steps: number;
   cfg_scale: number;
+  token: string;
   threshold: number;
   perlin: number;
   height: number;
@@ -115,9 +116,7 @@ export const frontendToBackendParameters = (
 
   const {
     cfgScale,
-
     height,
-
     img2imgStrength,
     infillMethod,
     initialImage,
@@ -136,7 +135,6 @@ export const frontendToBackendParameters = (
     shouldFitToWidthHeight,
     shouldGenerateVariations,
     shouldRandomizeSeed,
-
     steps,
     threshold,
     tileSize,
@@ -156,6 +154,7 @@ export const frontendToBackendParameters = (
     iterations,
     steps,
     cfg_scale: cfgScale,
+    token: systemState.token,
     threshold,
     perlin,
     height,

@@ -1,3 +1,4 @@
+import { tokenToCSSVar } from '@chakra-ui/react';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 import * as InvokeAI from 'app/invokeai';
@@ -165,6 +166,7 @@ export const generationSlice = createSlice({
         variations,
         steps,
         cfg_scale,
+        token,
         threshold,
         perlin,
         seamless,
@@ -189,6 +191,7 @@ export const generationSlice = createSlice({
       if (prompt) state.prompt = promptToString(prompt);
       if (sampler) state.sampler = sampler;
       if (steps) state.steps = steps;
+      if (token) state.token = token;
       if (cfg_scale) state.cfgScale = cfg_scale;
       if (typeof threshold === 'undefined') {
         state.threshold = 0;
@@ -225,6 +228,7 @@ export const generationSlice = createSlice({
         variations,
         steps,
         cfg_scale,
+        token,
         threshold,
         perlin,
         seamless,
@@ -268,6 +272,7 @@ export const generationSlice = createSlice({
       if (sampler) state.sampler = sampler;
       if (steps) state.steps = steps;
       if (cfg_scale) state.cfgScale = cfg_scale;
+      if (token) state.token = token;
       if (threshold) state.threshold = threshold;
       if (typeof threshold === 'undefined') state.threshold = 0;
       if (perlin) state.perlin = perlin;

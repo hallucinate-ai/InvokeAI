@@ -57,6 +57,7 @@ export declare type CommonGeneratedImageMetadata = {
   variations: SeedWeights;
   steps: number;
   cfg_scale: number;
+  token: string;
   width: number;
   height: number;
   seamless: boolean;
@@ -156,6 +157,7 @@ export declare type SystemGenerationMetadata = {
 
 export declare type SystemConfig = SystemGenerationMetadata & {
   model_list: ModelList;
+  token: string;
   infill_methods: string[];
 };
 

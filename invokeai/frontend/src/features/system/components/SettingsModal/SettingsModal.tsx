@@ -16,6 +16,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { IN_PROGRESS_IMAGE_TYPES } from 'app/constants';
 import { RootState } from 'app/store';
 import { useAppDispatch, useAppSelector } from 'app/storeHooks';
+import IAIInput from 'common/components/IAIInput';
 import IAINumberInput from 'common/components/IAINumberInput';
 import IAISelect from 'common/components/IAISelect';
 import IAISwitch from 'common/components/IAISwitch';
@@ -27,6 +28,7 @@ import {
   setShouldConfirmOnDelete,
   setShouldDisplayGuides,
   setShouldDisplayInProgressType,
+  setToken,
 } from 'features/system/store/systemSlice';
 import { uiSelector } from 'features/ui/store/uiSelectors';
 import { setShouldUseCanvasBetaLayout } from 'features/ui/store/uiSlice';
@@ -45,6 +47,7 @@ const selector = createSelector(
       model_list,
       saveIntermediatesInterval,
       enableImageDebugging,
+      token,
     } = system;
 
     const { shouldUseCanvasBetaLayout } = ui;
@@ -57,6 +60,7 @@ const selector = createSelector(
       saveIntermediatesInterval,
       enableImageDebugging,
       shouldUseCanvasBetaLayout,
+      token,
     };
   },
   {
@@ -100,6 +104,7 @@ const SettingsModal = ({ children }: SettingsModalProps) => {
     saveIntermediatesInterval,
     enableImageDebugging,
     shouldUseCanvasBetaLayout,
+    token,
   } = useAppSelector(selector);
 
   /**
@@ -138,6 +143,19 @@ const SettingsModal = ({ children }: SettingsModalProps) => {
           <ModalCloseButton className="modal-close-btn" />
           <ModalBody className="settings-modal-content">
             <div className="settings-modal-items">
+              <h2 style={{ fontWeight: 'bold' }}>Payment Token</h2>
+              <div className="settings-modal-item">
+                <IAIInput
+                  label={t('Token')}
+                  value={token}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    dispatch(setToken(e.target.value))
+                  }
+                />
+              </div>
+            </div>
+            <div className="settings-modal-items">
+              <h2 style={{ fontWeight: 'bold' }}>UI Layout</h2>
               <div
                 className="settings-modal-item"
                 style={{ gridAutoFlow: 'row', rowGap: '0.5rem' }}
@@ -204,7 +222,6 @@ const SettingsModal = ({ children }: SettingsModalProps) => {
                 }
               />
             </div>
-
             <div className="settings-modal-reset">
               <Heading size={'md'}>{t('settings:resetWebUI')}</Heading>
               <Button colorScheme="red" onClick={handleClickResetWebUI}>

@@ -27,6 +27,7 @@ export interface SystemState
   extends InvokeAI.SystemStatus,
     InvokeAI.SystemConfig {
   shouldDisplayInProgressType: InProgressImageType;
+  token: string;
   log: Array<LogEntry>;
   shouldShowLogViewer: boolean;
   isGFPGANAvailable: boolean;
@@ -58,6 +59,7 @@ const initialSystemState: SystemState = {
   log: [],
   shouldShowLogViewer: false,
   shouldDisplayInProgressType: 'latents',
+  token: 'defaultUser',
   shouldDisplayGuides: true,
   isGFPGANAvailable: true,
   isESRGANAvailable: true,
@@ -199,6 +201,9 @@ export const systemSlice = createSlice({
       state.currentStatusHasSteps = false;
       state.currentStatus = i18n.t('common:statusPreparing');
     },
+    setToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload;
+    },
     setModelList: (
       state,
       action: PayloadAction<InvokeAI.ModelList | Record<string, never>>
@@ -274,6 +279,7 @@ export const {
   setSearchFolder,
   setFoundModels,
   setOpenModel,
+  setToken,
 } = systemSlice.actions;
 
 export default systemSlice.reducer;

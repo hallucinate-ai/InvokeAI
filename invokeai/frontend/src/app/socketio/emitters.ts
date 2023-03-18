@@ -152,18 +152,21 @@ const makeSocketIOEmitters = (
     emitRequestImages: (category: GalleryCategory) => {
       const gallery: GalleryState = getState().gallery;
       const { earliest_mtime } = gallery.categories[category];
-      socketio.emit('requestImages', category, earliest_mtime);
+      const token = getState().system.token;
+      socketio.emit('requestImages', category, earliest_mtime, token);
     },
     emitRequestNewImages: (category: GalleryCategory) => {
       const gallery: GalleryState = getState().gallery;
       const { latest_mtime } = gallery.categories[category];
-      socketio.emit('requestLatestImages', category, latest_mtime);
+      const token = getState().system.token;
+      socketio.emit('requestLatestImages', category, latest_mtime, token);
     },
     emitCancelProcessing: () => {
       socketio.emit('cancel');
     },
     emitRequestSystemConfig: () => {
-      socketio.emit('requestSystemConfig');
+      const token = getState().system.token;
+      socketio.emit('requestSystemConfig', token);
     },
     emitSearchForModels: (modelFolder: string) => {
       socketio.emit('searchForModels', modelFolder);
@@ -175,8 +178,9 @@ const makeSocketIOEmitters = (
       socketio.emit('deleteModel', modelName);
     },
     emitRequestModelChange: (modelName: string) => {
+      const token = getState().system.token;
       dispatch(modelChangeRequested());
-      socketio.emit('requestModelChange', modelName);
+      socketio.emit('requestModelChange', modelName, token);
     },
     emitSaveStagingAreaImageToGallery: (url: string) => {
       socketio.emit('requestSaveStagingAreaImageToGallery', url);
