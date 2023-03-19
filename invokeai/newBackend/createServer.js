@@ -394,6 +394,8 @@ export function startServer(port){
 		let formData = req.query
 		let body = req.body
 		let data = body["data"]
+		data = JSON.parse(data)
+		let token = data["token"]
 		let files = req.files
 		let file = {}
 		if("file" in files){
@@ -404,12 +406,12 @@ export function startServer(port){
 		let type = file["type"]
 		// remove the .png extension from the file name
 		fileName = fileName.replace(".png", "")
-		let dstPath = dir + "/gallery/" + sid + "/" + fileName + "-uploaded" + ".png"
+		let dstPath = dir + "/gallery/" + token + "/" + fileName + "-uploaded" + ".png"
 		// copy the file from the temporary location to the intended location
 		fs.copyFileSync(tmpPath, dstPath)
 		fs.rmSync(tmpPath)
 		// create a thumbnail with jimp of the uploaded image
-		let thumbnail = "./gallery/" + sid + "/" + fileName + "-uploaded" + "-thumbnail" + ".png"
+		let thumbnail = "./gallery/" + token + "/" + fileName + "-uploaded" + "-thumbnail" + ".png"
 		let imgData = Jimp.read(dstPath)
 		//resize the image to a maximum width of 200px and a maximum height of 200px
 		imgData.then(function (image) {
@@ -417,13 +419,13 @@ export function startServer(port){
 			image.write(thumbnail)
 		})
 		// upload the image to s3
-		command = "s3cmd --config=cw-object-storage-config_stable-diffusion put " + dstPath + " s3://gallery/" + sid + "/" + fileName + "-uploaded" + ".png"
-		results = execute("s3cmd", ["--config=cw-object-storage-config_stable-diffusion", "put", dstPath, "s3://gallery/" + sid + "/" + fileName + "-uploaded" + ".png"])
+		command = "s3cmd --config=cw-object-storage-config_stable-diffusion put " + dstPath + " s3://gallery/" + token + "/" + fileName + "-uploaded" + ".png"
+		results = execute("s3cmd", ["--config=cw-object-storage-config_stable-diffusion", "put", dstPath, "s3://gallery/" + token + "/" + fileName + "-uploaded" + ".png"])
 		let output = {
 			"height":imgData.height,
 			"mtime":fs.statSync(dstPath).mtimeMs,
-			"thumbnail":"outputs/defaultUser/" + fileName +  "-uploaded-thumbnail.png",
-			"url":"outputs/defaultUser/" + fileName+ "-uploaded.png",
+			"thumbnail":"outputs/" + token + "/" + fileName +  "-uploaded-thumbnail.png",
+			"url":"outputs/" + token + "/" + fileName + "-uploaded.png",
 			"width":imgData.width
 		}
 		res.send(output)
@@ -514,6 +516,26 @@ export function startServer(port){
 				console.log("Received a requestImages request for user images tokenID: " + token);
 				let output = galleryImages.main(type, mtime, token, socket)
 				socket.emit('galleryImages', output);
+			}
+		});
+
+		socket.on('deleteImage', function(filename, thunbnailname, fid, token, type) {
+			cwd = process.cwd()
+			console.log("Received a deleteImage request");
+			filename = filename.replace("outputs/","gallery/")
+			thunbnailname = thunbnailname.replace("outputs/","gallery/")
+			if(fs.existsSync(cwd + "/" + filename)){
+				fs.rmSync(cwd + "/" + filename)
+			}
+			if(fs.existsSync(cwd + "/" + thunbnailname)){
+				fs.rmSync(cwd + "/" + thunbnailname)
+			}
+			let index = filename.replace("outputs/", "").replace(token + "/", "").replace(".png", "")
+			if (fs.existsSync(cwd + "/" +"metadata.json")){
+				let metadata = fs.readFileSync(cwd + "/" +"metadata.json")
+				metadata = JSON.parse(metadata)
+				delete metadata[index]
+				fs.writeFileSync(cwd + "/" + "metadata.json", JSON.stringify(metadata))
 			}
 		});
 

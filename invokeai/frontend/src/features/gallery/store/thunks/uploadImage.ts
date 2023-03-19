@@ -24,11 +24,14 @@ export const uploadImage =
 
     const formData = new FormData();
 
+    const token = getState().system.token;
+
     formData.append('file', imageFile, imageFile.name);
     formData.append(
       'data',
       JSON.stringify({
         kind: 'init',
+        token: token,
       })
     );
 
