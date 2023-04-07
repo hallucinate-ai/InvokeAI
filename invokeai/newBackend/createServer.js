@@ -82,7 +82,7 @@ function systemConfig(t, model, token, socket){
 		}
 
 		modelDict["stable-diffusion-v1.5"] = {
-				"status": "active",
+				"status": "inactive",
 				"description": "Stable Diffusion version 1.5",
 				"modelid": "stable-diffusion-v1.5",
 				"website": "https://stability.ai/",
@@ -112,8 +112,12 @@ function systemConfig(t, model, token, socket){
 		// sort modelDict by key active first
 		let activeModels = {}
 		let inactiveModels = {}
+		// get api status from website synchroneously
+
+
 		for (var model in modelDict){
-			if (modelDict[model]['ratingcount'] >= 10){
+			let modelLength = model.length
+			if (modelDict[model]['ratingcount'] >= 10 && modelLength < 100){
 				if (modelDict[model]["status"] == "active"){
 					activeModels[model] = modelDict[model]
 				}
@@ -141,8 +145,9 @@ function systemConfig(t, model, token, socket){
 		for( var worker in workers){
 			let thisWorker = workers[worker]
 			let thisModel = thisWorker["model"]
-			if (Object.keys(template["model_list"]).includes(thisModel)){
-				template["model_list"][thisModel]["status"] = "active"
+			let thisTranslatedName = modelNameDict[thisModel]
+			if (Object.keys(template["model_list"]).includes(thisTranslatedName)){
+				template["model_list"][thisTranslatedName]["status"] = "active"
 			}
 		}
 	return template
@@ -241,6 +246,16 @@ function requestModelChange(model, uid, socket){
 
 	let results = undefined
 	let results2 = undefined
+	if(!fs.existsSync(cwd + '/modelSelection.json')){
+		fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify({}))
+	}
+	if(uid == undefined || uid == "" || uid == null){
+		uid = "defaultUser"
+	}
+	let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
+	modelSelection[uid] = translatedModelName
+	fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify(modelSelection))
+	config["model_list"][model]["status"] == "active" 
 	const response2 = ( async () => {
 		results = await generateImage.main(request, false, false, timestamp, config, uid, socket)
 		return results
@@ -263,16 +278,7 @@ function requestModelChange(model, uid, socket){
 			thisQueue = queues[queue]
 		}
 	}
-	if(!fs.existsSync(cwd + '/modelSelection.json')){
-		fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify({}))
-	}
-	if(uid == undefined || uid == "" || uid == null){
-		uid = "defaultUser"
-	}
-	let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
-	modelSelection[uid] = model
-	fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify(modelSelection))
-	config["model_list"][model]["status"] == "active" 
+
 	let output = {
 		"model_name": model,
 		"model_list": config["model_list"],
@@ -305,6 +311,7 @@ export function startServer(port){
 		fs.mkdirSync('./s3gallery')
 	}
 	let command = "mount | grep s3gallery"
+	command = "echo " + command + " disabled"
 	let permission = false
 	let results = ""
 	//run the async function execute with the command, and wait for the results to come back before continuing
@@ -318,10 +325,10 @@ export function startServer(port){
 				results = execute("echo", [ACCESS_KEY_ID + ":" + SECRET_ACCESS_KEY + " > .passwd-s3fs ; chmod 600 .passwd-s3fs"])
 				console.log(command)
 				console.log(results)
-				command = "s3fs gallery s3gallery -o passwd_file=./.passwd-s3fs -o url=https://object.ord1.coreweave.com -o use_path_request_style"
-				results = execute("s3fs", ["s3gallery", "s3gallery", "-o", "passwd_file=.passwd-s3fs", "-o", "url=https://object.ord1.coreweave.com", "-o", "use_path_request_style"])
-				console.log(command)
-				console.log(results)
+				// command = "s3fs gallery s3gallery -o passwd_file=./.passwd-s3fs -o url=https://object.ord1.coreweave.com -o use_path_request_style"
+				// results = execute("s3fs", ["s3gallery", "s3gallery", "-o", "passwd_file=.passwd-s3fs", "-o", "url=https://object.ord1.coreweave.com", "-o", "use_path_request_style"])
+				// console.log(command)
+				// console.log(results)
 			}
 			if (stderr) {
 				console.log(`stderr: ${stderr}`);
@@ -346,8 +353,9 @@ export function startServer(port){
 		console.log(req.url)
 		let path = req.path
 		path = path.replace("/outputs/", "./gallery/")
-		//open the image
-		if (fs.existsSync(path) != false){
+		//open the image if it is not a folder
+		
+		if (fs.existsSync(path) != false && ( path.endsWith(".png") == true || path.endsWith(".jpg") == true || path.endsWith(".webp") == true)){
 			let image = fs.readFileSync(path)
 			res.send(image)
 		}
@@ -404,6 +412,9 @@ export function startServer(port){
 		let fileName = file["name"]
 		let tmpPath = file["path"]
 		let type = file["type"]
+
+		// convvertfilename to to urlencoded
+		fileName = encodeURIComponent(fileName)
 		// remove the .png extension from the file name
 		fileName = fileName.replace(".png", "")
 		let dstPath = dir + "/gallery/" + token + "/" + fileName + "-uploaded" + ".png"
@@ -468,7 +479,7 @@ export function startServer(port){
 
 		let results = undefined
 		let results2 = undefined
-		socket.on('generateImage', function(request, request2, request3, ) {
+		socket.on('generateImage', function(request, request2, request3) {
 			let modelSelection = fs.readFileSync("modelSelection.json")
 			modelSelection = JSON.parse(modelSelection)
 			let uid = "defaultUser"
@@ -541,6 +552,9 @@ export function startServer(port){
 
 		socket.on('requestModelChange', function(model, token) {
 			console.log("Received a requestModelChange request");
+
+			
+			console.log("changing model to " + model + " for user " + token + "")
 			let uid = 'defaultUser'
 			if (token != undefined){
 				uid = token
@@ -571,7 +585,7 @@ export function startServer(port){
 			console.log("Received a message request");
 			let	output = message(t, socket)
 			socket.emit('message', output);
-		})
+		});
 	})
 }
 //startServer();

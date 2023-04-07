@@ -155,12 +155,13 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 	if (Object.keys(modelSelection).includes(uid)){
 		model = modelSelection[uid]
 	}
+
 	if (request["init_img"] != undefined){
 		request["init_img"] = request["init_img"].replace("outputs", "gallery")
 	}
 
 	let task = {
-		"command": "diffuse",
+		"command": "txt2img",
 		"model": model,
 		"prompt": request["prompt"],
 		"width": request["width"],
@@ -182,6 +183,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 
 	let context = ""
 	if (request["generation_mode"] != "txt2img"){
+		task["command"] = "img2img"
 		context = request["init_img"]
 		if(context != undefined){
 			//context = context.replace(/^data:image\/\w+;base64,/, "")
@@ -197,6 +199,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 		mask = mask.replace(/^data:image\/\w+;base64,/, "")
 	}
 	if (request["generation_mode"] == "unifiedCanvas"){
+		task["command"] = "unifiedCanvas"
 		context = addPerlinNoise(context, mask, request["width"], request["height"])
 
 		//fix async stuff
@@ -240,12 +243,24 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 					expectedBytes -= blob.length
 	
 					console.log('received bytes:', expectedBytes, 'to go')
-					let model = task["model"]
+					let translatedModelName = task["model"]
+					let modelList = config["model_list"]
+					for (let i = 0; i < Object.keys(modelList).length; i++){
+						let thisModelName = Object.keys(modelList)[i]
+						let thismodelId = modelList[thisModelName]["modelid"] 
+						if (translatedModelName == thismodelId){
+							model = thisModelName
+						}
+					}
+
 					if (uid == undefined){
 						uid = 'defaultUser'
 					}
 					if(expectedBytes <= 0){
-						config["model_list"][model]["status"] == "active" 
+						console.log('finished')
+						config["model_list"][model]["status"] = "active" 
+						console.log(model)
+						console.log(config["model_list"][model])
 						let output = {
 							"model_name": model,
 							"model_list": config["model_list"],
@@ -253,7 +268,6 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 						socket.emit("modelChanged", output)
 					}
 				}
-
 				return true
 			}
 			
