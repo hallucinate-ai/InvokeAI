@@ -167,10 +167,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 		"width": request["width"],
 		"height": request["height"],
 		"token": request["token"],
-		"sampler_name": 'k',
-		"sampler_args": {
-			"schedule": sampler_class
-		},
+		"sampler": sampler,
 		"cfg_scale": request["cfg_scale"],
 		"denoising_strength": request["strength"],
 		"steps": request["steps"],
