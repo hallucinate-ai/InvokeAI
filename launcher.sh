@@ -1,7 +1,6 @@
 #!/bin/sh
 
-cd invokeai/newBackend
+cd /app/InvokeAI/invokeai/newBackend
 node main.js &
-cd ../../
-cd invokeai/frontend
+cd /app/InvokeAI/invokeai/frontend
 node run dev -- --host &
