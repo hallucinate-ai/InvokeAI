@@ -27,12 +27,11 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 RUN true
-RUN echo "!hello!"
+RUN echo "!hello!1"
 RUN git clone https://github.com/hallucinate-ai/InvokeAI.git
 WORKDIR /app/InvokeAI/invokeai/frontend/
 RUN npm install . 
 RUN npm i -g corepack
-RUN node -v && sleep 10
 RUN yarn install
 WORKDIR /app/InvokeAI/invokeai/newBackend/
 RUN npm install .
