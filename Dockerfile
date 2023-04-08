@@ -29,9 +29,6 @@ WORKDIR /app
 RUN true
 RUN echo "!hello!"
 RUN git clone https://github.com/hallucinate-ai/InvokeAI.git
-RUN wget https://deb.nodesource.com/setup_19.x -O /tmp/nodejs.sh
-RUN chmod +x /tmp/nodejs.sh
-RUN  apt-get install -f -y nodejs
 WORKDIR /app/InvokeAI/invokeai/frontend/
 RUN npm install . 
 RUN npm i -g corepack
