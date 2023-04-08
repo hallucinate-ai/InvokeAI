@@ -23,6 +23,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 RUN true
+RUN echo "hello"
 RUN git clone https://github.com/hallucinate-ai/InvokeAI.git
 WORKDIR /app/InvokeAI/invokeai/frontend/
 RUN npm install . 
