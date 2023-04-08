@@ -282,10 +282,11 @@ export function main(request, request2, request3, timestamp, socket){
 		let type = request3["type"]
 		if (type == "codeformer"){
 			task = {
-				"command": "diffuse",
-				"model": type,
-				"codeformer_fidelity": request3["codeformer_fidelity"],
+				"command": "enhance_face",
+				"fidelity": request3["codeformer_fidelity"],
 				"face_strength": request3["strength"],
+				"factor": 1,
+				"upscale_background": false,
 				"timestamp": Date.now(),
 				"input_image": request["init_img"],
 				"id": id

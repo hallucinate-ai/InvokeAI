@@ -162,12 +162,13 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 
 	let task = {
 		"command": "txt2img",
-		"model": model,
+		//"model": model,
+		"model": "stable-diffusion-v1-5",
 		"prompt": request["prompt"],
 		"width": request["width"],
 		"height": request["height"],
 		"token": request["token"],
-		"sampler": sampler,
+		"sampler": request["sampler_name"],
 		"cfg_scale": request["cfg_scale"],
 		"denoising_strength": request["strength"],
 		"steps": request["steps"],
@@ -487,7 +488,6 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 	
 		send({
 			...task,
-			command: 'diffuse',
 			id: 'task',
 			input_image: context ? 'ctx' : undefined,
 			mask_image: mask ? 'mask' : undefined,

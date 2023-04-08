@@ -217,7 +217,7 @@ function upscale(request, request2, request3, timestamp, task, context, socket){
 		//context = fs.readFileSync(cwd + '/gallery/defaultUser/' + timestamp + '.png')
 		send({
 			...task,
-			command: 'diffuse',
+			command: 'enhance_face',
 			id: 'task',
 			input_image: context ? 'ctx' : undefined,
 			mask_image: mask ? 'mask' : undefined,
@@ -246,9 +246,8 @@ export function main(request, request2, request3, timestamp, socket){
 	let task = {}
 	if(request2 != false  ){
 		task = {
-			"command": "diffuse",
-			"model": "real-esrgan",
-			"level": request2["level"],
+			"command": "upscale",
+			"factor": request2["level"],
 			"upscale_strength": request2["strength"],
 			"timestamp": Date.now(),
 			"input_image": request["init_img"],
