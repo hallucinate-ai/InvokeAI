@@ -22,10 +22,11 @@ ENV PYTHONUNBUFFERED=1
 # Install pip requirements
 
 WORKDIR /app
+RUN true
 RUN git clone https://github.com/hallucinate-ai/InvokeAI.git
-WORKDIR /app/InvokeAI/frontend/
+WORKDIR /app/InvokeAI/invokeai/frontend/
 RUN npm install . 
-WORKDIR /app/InvokeAI/newBackend/
+WORKDIR /app/InvokeAI/invokeai/newBackend/
 RUN npm install .
 
 
