@@ -18,3 +18,4 @@ From `invokeai/frontend/` run `yarn install` to get everything set up.
 To build for dev: `yarn build-dev`
 
 To build for production: `yarn build`
+	
