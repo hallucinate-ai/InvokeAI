@@ -3,9 +3,13 @@ FROM nvidia/cuda:11.7.0-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
-
+RUN apt update
+RUN apt install -y wget
+RUN wget https://deb.nodesource.com/setup_19.x -O /tmp/nodejs.sh
+RUN chmod +x /tmp/nodejs.sh
+RUN /tmp/nodejs.sh
 RUN apt-get update && \
-    apt-get install -y nvidia-utils-510 libglib2.0-0 wget python3 python3-pip git ffmpeg libsm6 libxext6 nodejs npm && \
+    apt-get install -y nvidia-utils-510 libglib2.0-0 wget python3 python3-pip git curl ffmpeg libsm6 libxext6 nodejs&& \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -23,13 +27,18 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 RUN true
-RUN echo "hello"
+RUN echo "!hello!"
 RUN git clone https://github.com/hallucinate-ai/InvokeAI.git
+RUN wget https://deb.nodesource.com/setup_19.x -O /tmp/nodejs.sh
+RUN chmod +x /tmp/nodejs.sh
+RUN  apt-get install -f -y nodejs
 WORKDIR /app/InvokeAI/invokeai/frontend/
 RUN npm install . 
+RUN npm i -g corepack
+RUN node -v && sleep 10
+RUN yarn install
 WORKDIR /app/InvokeAI/invokeai/newBackend/
 RUN npm install .
-
 
 # Creates a non-root user with an explicit UID and adds permission to access the /app folder
 # For more info, please refer to https://aka.ms/vscode-docker-python-configure-containers
