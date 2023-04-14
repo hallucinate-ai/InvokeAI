@@ -233,7 +233,7 @@ function generateImage(request, socket){
 			mask_image: mask ? 'mask' : undefined,
 		})
 	
-		console.log('sent task:', task)
+		console.log('sent test task:', task)
 	})
 	
 	HallucinateAPI.on('close', code => {

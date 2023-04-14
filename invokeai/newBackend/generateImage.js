@@ -493,7 +493,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 			mask_image: mask ? 'mask' : undefined,
 		})
 	
-		console.log('sent task:', task)
+		console.log('sent generate task:', task)
 		return output
 	})
 

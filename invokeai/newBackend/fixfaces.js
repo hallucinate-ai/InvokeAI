@@ -239,13 +239,12 @@ function fixfaces(request, request2, request3, timestamp, task, context, socket)
 		//context = fs.readFileSync(cwd + '/gallery/defaultUser/' + timestamp + '.png')
 		send({
 			...task,
-			command: 'diffuse',
 			id: 'task',
 			input_image: context ? 'ctx' : undefined,
 			mask_image: mask ? 'mask' : undefined,
 		})
 	
-		console.log('sent task:', task)
+		console.log('sent fixface task:', task)
 		return output
 
 	})
@@ -270,21 +269,15 @@ export function main(request, request2, request3, timestamp, socket){
 		let type = request3["type"]
 		if (type == "codeformer"){
 			task = {
-				"command": "diffuse",
-				"model": type,
-				"codeformer_fidelity": request3["codeformer_fidelity"],
-				"face_strength": request3["strength"],
-				"timestamp": Date.now(),
+				"command": "enhance_faces",
+				"fidelity": request3["codeformer_fidelity"],
 				"input_image": request["init_img"],
 				"id": id
 			}
 		}
 		else {
 			task = {
-				"command": "diffuse",
-				"model": type,
-				"denoising_strength": request3["strength"],
-				"timestamp": Date.now(),
+				"command": "upscale",
 				"input_image": request["init_img"],
 				"id": id
 			}
@@ -312,30 +305,24 @@ export function main2(request, request2, request3, timestamp, socket){
 			let type = request3["type"]
 			if (type == "codeformer"){
 				task = {
-					"command": "diffuse",
-					"model": type,
-					"codeformer_fidelity": request3["codeformer_fidelity"],
-					"face_strength": request3["strength"],
-					"timestamp": Date.now(),
+					"command": "enhance_faces",
+					"fidelity": request3["codeformer_fidelity"],
 					"input_image": request["init_img"],
 					"id": id
 				}
 				if (Object.keys(request2).includes("level")){
-					task["level"] = request2["level"]
+					task["factor"] = request2["level"]
 					task["upscale_strength"] = request2["strength"]
 				}
 			}
 			else {
 				task = {
-					"command": "diffuse",
-					"model": type,
-					"denoising_strength": request3["strength"],
-					"timestamp": Date.now(),
+					"command": "upscale",
 					"input_image": request["init_img"],
 					"id": id
 				}
 				if (Object.keys(request2).includes("level")){
-					task["level"] = request2["level"]
+					task["factor"] = request2["level"]
 					task["upscale_strength"] = request2["strength"]
 				}
 			}
@@ -343,11 +330,8 @@ export function main2(request, request2, request3, timestamp, socket){
 		}
 		else {
 			task = {
-				"command": "diffuse",
-				"model": "real-esrgan",
-				"level": request2["level"],
-				"upscale_strength": request2["strength"],
-				"timestamp": Date.now(),
+				"command": "upscale",
+				"factor": request2["level"],
 				"input_image": request["init_img"],
 				"id": id
 			}
@@ -541,13 +525,12 @@ export function main2(request, request2, request3, timestamp, socket){
 		send({
 	
 			...task,
-			command: 'diffuse',
 			id: 'task',
 			input_image: context ? 'ctx' : undefined,
 			mask_image: mask ? 'mask' : undefined,
 		})
 	
-		console.log('sent task:', task)
+		console.log('sent fixface task:', task)
 		return output
 
 	})
