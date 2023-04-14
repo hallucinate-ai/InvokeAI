@@ -238,4 +238,4 @@ installer/update.sh
 # no longer stored in source directory
 models
 
-newBackend/gallery/**
+**/newBackend/gallery/*
