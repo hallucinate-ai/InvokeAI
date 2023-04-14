@@ -12,14 +12,13 @@ export default function MainSettings() {
     <div className="main-settings">
       <div className="main-settings-list">
         <div className="main-settings-row">
-          <MainIterations />
-          <MainSteps />
+          <MainWidth />
+          <MainHeight />
           <MainCFGScale />
         </div>
         <div className="main-settings-row">
-          <MainWidth />
-          <MainHeight />
           <MainSampler />
+          <MainSteps />
         </div>
       </div>
     </div>

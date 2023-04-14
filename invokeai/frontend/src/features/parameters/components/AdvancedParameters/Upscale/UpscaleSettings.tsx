@@ -57,16 +57,6 @@ const UpscaleSettings = () => {
         onChange={handleChangeLevel}
         validValues={UPSCALING_LEVELS}
       />
-      <IAINumberInput
-        isDisabled={!isESRGANAvailable}
-        label={t('parameters:strength')}
-        step={0.05}
-        min={0}
-        max={1}
-        onChange={handleChangeStrength}
-        value={upscalingStrength}
-        isInteger={false}
-      />
     </div>
   );
 };

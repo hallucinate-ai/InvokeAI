@@ -28,7 +28,6 @@ const App = () => {
         </div>
       </ImageUploader>
       <FloatingParametersPanelButtons />
-      <FloatingGalleryButton />
     </div>
   );
 };

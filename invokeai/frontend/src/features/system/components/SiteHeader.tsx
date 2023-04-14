@@ -81,48 +81,6 @@ const SiteHeader = () => {
 
         <LanguagePicker />
 
-        <IAIIconButton
-          aria-label={t('common:reportBugLabel')}
-          tooltip={t('common:reportBugLabel')}
-          variant="link"
-          data-variant="link"
-          fontSize={20}
-          size={'sm'}
-          icon={
-            <Link isExternal href="https://github.com/hallucinate-ai/InvokeAI/">
-              <FaBug />
-            </Link>
-          }
-        />
-
-        <IAIIconButton
-          aria-label={t('common:githubLabel')}
-          tooltip={t('common:githubLabel')}
-          variant="link"
-          data-variant="link"
-          fontSize={20}
-          size={'sm'}
-          icon={
-            <Link isExternal href="https://github.com/hallucinate-ai/InvokeAI">
-              <FaGithub />
-            </Link>
-          }
-        />
-
-        <IAIIconButton
-          aria-label={t('common:discordLabel')}
-          tooltip={t('common:discordLabel')}
-          variant="link"
-          data-variant="link"
-          fontSize={20}
-          size={'sm'}
-          icon={
-            <Link isExternal href="https://discord.gg/UR8CfXDY">
-              <FaDiscord />
-            </Link>
-          }
-        />
-
         <SettingsModal>
           <IAIIconButton
             aria-label={t('common:settingsLabel')}

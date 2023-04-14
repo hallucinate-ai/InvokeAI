@@ -31,12 +31,6 @@ export default function ImageToImagePanel() {
       feature: Feature.SEED,
       content: <SeedSettings />,
     },
-    variations: {
-      header: `${t('parameters:variations')}`,
-      feature: Feature.VARIATIONS,
-      content: <VariationsSettings />,
-      additionalHeaderComponents: <GenerateVariationsToggle />,
-    },
     face_restore: {
       header: `${t('parameters:faceRestoration')}`,
       feature: Feature.FACE_CORRECTION,
@@ -48,11 +42,6 @@ export default function ImageToImagePanel() {
       feature: Feature.UPSCALE,
       content: <UpscaleSettings />,
       additionalHeaderComponents: <UpscaleToggle />,
-    },
-    other: {
-      header: `${t('parameters:otherOptions')}`,
-      feature: Feature.OTHER,
-      content: <ImageToImageOutputSettings />,
     },
   };
 
