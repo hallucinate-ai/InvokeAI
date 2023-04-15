@@ -1,10 +1,8 @@
 import { createSelector } from '@reduxjs/toolkit';
-
 import IAIButton from 'common/components/IAIButton';
 import IAIInput from 'common/components/IAIInput';
 import IAINumberInput from 'common/components/IAINumberInput';
 import { useEffect, useState } from 'react';
-
 import { useAppDispatch, useAppSelector } from 'app/storeHooks';
 import { systemSelector } from 'features/system/store/systemSelectors';
 
@@ -64,11 +62,14 @@ export default function CheckpointModelView() {
       thumbnail: '',
       config: 'configs/stable-diffusion/v1-inference.yaml',
       weights: '',
-      //vae: '',
       width: 512,
       height: 512,
       default: false,
       format: 'ckpt',
+      modelid: '',
+      website: '',
+      rating: 0,
+      ratingcount: 0,
     });
 
   useEffect(() => {
@@ -82,10 +83,13 @@ export default function CheckpointModelView() {
         thumbnail: retrievedModel[openModel]?.thumbnail,
         config: retrievedModel[openModel]?.config,
         weights: retrievedModel[openModel]?.weights,
-        //vae: retrievedModel[openModel]?.vae,
         width: retrievedModel[openModel]?.width,
         height: retrievedModel[openModel]?.height,
         default: retrievedModel[openModel]?.default,
+        modelid: retrievedModel[openModel]?.modelid,
+        website: retrievedModel[openModel]?.website,
+        rating: retrievedModel[openModel]?.rating,
+        ratingcount: retrievedModel[openModel]?.ratingcount,
         format: 'ckpt',
       });
     }

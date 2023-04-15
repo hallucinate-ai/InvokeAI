@@ -146,7 +146,7 @@ const SettingsModal = ({ children }: SettingsModalProps) => {
               <h2 style={{ fontWeight: 'bold' }}>Payment Token</h2>
               <div className="settings-modal-item">
                 <IAIInput
-                  label={t('Token')}
+                  label="Token"
                   value={token}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     dispatch(setToken(e.target.value))

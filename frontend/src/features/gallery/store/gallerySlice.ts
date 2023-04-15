@@ -46,7 +46,7 @@ export interface GalleryState {
   galleryWidth: number;
   shouldUseSingleGalleryColumn: boolean;
 }
-
+const token = localStorage.getItem('token') || '';
 const initialState: GalleryState = {
   currentImageUuid: '',
   shouldPinGallery: true,
@@ -63,12 +63,14 @@ const initialState: GalleryState = {
       latest_mtime: undefined,
       earliest_mtime: undefined,
       areMoreImagesAvailable: true,
+      token: token,
     },
     result: {
       images: [],
       latest_mtime: undefined,
       earliest_mtime: undefined,
       areMoreImagesAvailable: true,
+      token: token,
     },
   },
   galleryWidth: 300,

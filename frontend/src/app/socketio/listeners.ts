@@ -257,7 +257,7 @@ const makeSocketIOListeners = (
      */
     onGalleryImages: (data: InvokeAI.GalleryImagesResponse) => {
       const { images, areMoreImagesAvailable, category } = data;
-
+      const token = getState().system.token;
       /**
        * the logic here ideally would be in the reducer but we have a side effect:
        * generating a uuid. so the logic needs to be here, outside redux.
@@ -276,6 +276,7 @@ const makeSocketIOListeners = (
           images: preparedImages,
           areMoreImagesAvailable,
           category,
+          token: token,
         })
       );
 

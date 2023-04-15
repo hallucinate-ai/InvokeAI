@@ -49,7 +49,7 @@ export const NUMPY_RAND_MIN = 0;
 
 export const NUMPY_RAND_MAX = 4294967295;
 
-export const FACETOOL_TYPES = ['codeformer'] as const;
+export const FACETOOL_TYPES = ['codeformer', 'gfpgan'] as const;
 
 export const IN_PROGRESS_IMAGE_TYPES: Array<{
   key: string;

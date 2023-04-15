@@ -56,11 +56,15 @@ export default function AddCheckpointModel() {
     description: '',
     config: 'configs/stable-diffusion/v1-inference.yaml',
     weights: '',
-    vae: '',
     width: 512,
     height: 512,
     format: 'ckpt',
     default: false,
+    thumbnail: undefined,
+    modelid: undefined,
+    website: undefined,
+    rating: undefined,
+    ratingcount: undefined,
   };
 
   const addModelFormSubmitHandler = (values: InvokeModelConfigProps) => {
@@ -203,29 +207,6 @@ export default function AddCheckpointModel() {
                     ) : (
                       <FormHelperText margin={0}>
                         {t('modelmanager:modelLocationValidationMsg')}
-                      </FormHelperText>
-                    )}
-                  </VStack>
-                </FormControl>
-
-                {/* VAE */}
-                <FormControl isInvalid={!!errors.vae && touched.vae}>
-                  <FormLabel htmlFor="vae" fontSize="sm">
-                    {t('modelmanager:vaeLocation')}
-                  </FormLabel>
-                  <VStack alignItems={'start'}>
-                    <Field
-                      as={IAIInput}
-                      id="vae"
-                      name="vae"
-                      type="text"
-                      width="2xl"
-                    />
-                    {!!errors.vae && touched.vae ? (
-                      <FormErrorMessage>{errors.vae}</FormErrorMessage>
-                    ) : (
-                      <FormHelperText margin={0}>
-                        {t('modelmanager:vaeLocationValidationMsg')}
                       </FormHelperText>
                     )}
                   </VStack>

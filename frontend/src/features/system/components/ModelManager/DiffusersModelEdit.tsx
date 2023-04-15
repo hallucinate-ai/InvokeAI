@@ -59,6 +59,11 @@ export default function DiffusersModelEdit() {
       path: '',
       default: false,
       format: 'diffusers',
+      website: '',
+      thumbnail: '',
+      modelid: '',
+      rating: 0,
+      ratingcount: 0,
     });
 
   useEffect(() => {
@@ -82,6 +87,11 @@ export default function DiffusersModelEdit() {
             : '',
         default: retrievedModel[openModel]?.default,
         format: 'diffusers',
+        website: retrievedModel[openModel]?.website,
+        thumbnail: retrievedModel[openModel]?.thumbnail,
+        modelid: retrievedModel[openModel]?.modelid,
+        rating: retrievedModel[openModel]?.rating,
+        ratingcount: retrievedModel[openModel]?.ratingcount,
       });
     }
   }, [model_list, openModel]);

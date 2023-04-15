@@ -173,11 +173,15 @@ export default function SearchModels() {
         description: '',
         config: 'configs/stable-diffusion/v1-inference.yaml',
         weights: model.location,
-        vae: '',
         width: 512,
         height: 512,
         default: false,
         format: 'ckpt',
+        thumbnail: '',
+        modelid: '',
+        rating: 0,
+        ratingcount: 0,
+        website: '',
       };
       dispatch(addNewModel(modelFormat));
     });

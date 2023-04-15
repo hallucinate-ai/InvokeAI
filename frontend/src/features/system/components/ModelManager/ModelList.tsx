@@ -153,7 +153,7 @@ const ModelList = () => {
                 width="max-content"
                 fontSize="14"
               >
-                {t('HuggingFace Diffusers')}
+                {t('modelmanager:diffuserModels')}
               </Text>
             </Box>
             <Box>{diffusersModelListItemsToRender}</Box>
@@ -208,7 +208,7 @@ const ModelList = () => {
             isActive={isSelectedFilter === 'ckpt'}
           />
           <ModelFilterButton
-            label={t('modelmanager:HuggingFace\nDiffusers')}
+            label={t('modelmanager:diffuserModels')}
             onClick={() => setIsSelectedFilter('ckpt')}
             isActive={isSelectedFilter === 'ckpt'}
           />

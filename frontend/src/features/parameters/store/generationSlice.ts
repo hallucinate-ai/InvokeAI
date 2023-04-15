@@ -33,6 +33,7 @@ export interface GenerationState {
   tileSize: number;
   variationAmount: number;
   width: number;
+  token: string;
 }
 
 const initialGenerationState: GenerationState = {
@@ -61,6 +62,7 @@ const initialGenerationState: GenerationState = {
   tileSize: 32,
   variationAmount: 0.1,
   width: 512,
+  token: '',
 };
 
 const initialState: GenerationState = initialGenerationState;
