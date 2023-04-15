@@ -17,8 +17,8 @@ export default function MainSettings() {
           <MainCFGScale />
         </div>
         <div className="main-settings-row">
-          <MainSampler />
           <MainSteps />
+          <MainSampler />
         </div>
       </div>
     </div>

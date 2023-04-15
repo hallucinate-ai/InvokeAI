@@ -356,29 +356,6 @@ const ImageMetadataViewer = memo(
                             />
                           </Flex>
                         );
-                      } else if (postprocess.type === 'gfpgan') {
-                        const { strength } = postprocess;
-                        return (
-                          <Flex
-                            key={i}
-                            pl={'2rem'}
-                            gap={1}
-                            direction={'column'}
-                          >
-                            <Text size={'md'}>{`${
-                              i + 1
-                            }: Face restoration (GFPGAN)`}</Text>
-
-                            <MetadataItem
-                              label="Strength"
-                              value={strength}
-                              onClick={() => {
-                                dispatch(setFacetoolStrength(strength));
-                                dispatch(setFacetoolType('gfpgan'));
-                              }}
-                            />
-                          </Flex>
-                        );
                       } else if (postprocess.type === 'codeformer') {
                         const { strength, fidelity } = postprocess;
                         return (

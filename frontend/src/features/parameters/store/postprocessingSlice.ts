@@ -22,7 +22,7 @@ export interface PostprocessingState {
 const initialPostprocessingState: PostprocessingState = {
   codeformerFidelity: 0.75,
   facetoolStrength: 0.8,
-  facetoolType: 'gfpgan',
+  facetoolType: 'codeformer',
   hiresFix: false,
   hiresStrength: 0.75,
   shouldLoopback: false,

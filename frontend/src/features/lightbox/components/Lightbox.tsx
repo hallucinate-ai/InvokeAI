@@ -116,6 +116,7 @@ export default function Lightbox() {
             </>
           )}
         </div>
+        <ImageGallery />
       </div>
     </div>
   );

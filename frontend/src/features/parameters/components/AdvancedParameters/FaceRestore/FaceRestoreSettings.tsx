@@ -72,15 +72,28 @@ const FaceRestoreSettings = () => {
       />
       <IAINumberInput
         isDisabled={!isGFPGANAvailable}
-        label={t('parameters:codeformerFidelity')}
+        label={t('parameters:strength')}
         step={0.05}
         min={0}
         max={1}
-        onChange={handleChangeCodeformerFidelity}
-        value={codeformerFidelity}
+        onChange={handleChangeStrength}
+        value={facetoolStrength}
         width="90px"
         isInteger={false}
       />
+      {facetoolType === 'codeformer' && (
+        <IAINumberInput
+          isDisabled={!isGFPGANAvailable}
+          label={t('parameters:codeformerFidelity')}
+          step={0.05}
+          min={0}
+          max={1}
+          onChange={handleChangeCodeformerFidelity}
+          value={codeformerFidelity}
+          width="90px"
+          isInteger={false}
+        />
+      )}
     </Flex>
   );
 };
