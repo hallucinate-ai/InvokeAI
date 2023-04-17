@@ -8,6 +8,7 @@ import jimp from 'jimp';
 import fs from 'fs';
 import * as generateImage from './generateImage.js';
 import * as galleryImages from './galleryImages.js';
+import * as getModelList from './getModelList.js';
 import { exec } from 'child_process';
 import axios from 'axios';
 import * as child_process from "child_process";
@@ -39,117 +40,109 @@ async function execute(command, args) {
 }
 
 function systemConfig(t, model, token, socket){
-		let models = child_process.execSync('node getModelList.js', { stdio: 'ignore' })
-		models = fs.readFileSync("modelDict.json")
-		models = JSON.parse(models)
-		let modelDict = {}
-		let modelNameDict = {}
-		let thisModels = models[3]
-		for( var model in thisModels){
-			let modelName = model
-			let thisModel = thisModels[model]
-			for (var modelVersion in thisModel){
-				let modelVersionName = modelVersion
-				let civitai = thisModel[modelVersion]
-				modelNameDict[civitai] = modelName + " " + modelVersionName 
-			}	
+	let cwd = process.cwd()
+	let results = []
+	const response = ( async () => {
+		results = await getModelList.main()
+	})();
+	results = fs.readFileSync(cwd + '/models.json', 'utf8')
+	let models = JSON.parse(results)
+	let modelDict = {}
+	let modelNameDict = {}	
+	for (var model in models){
+		let modelName = model['id']
+		let width = model['width']
+		let height = model['height']
+		let thumbnail = model["thumbnail"]
+		let modelid = model["id"]
+		let description = model['description']
+		let website = model["website"]
+		//let website = ""
+		let rating = model["rating"]
+		//let rating = ""
+		let ratingcount = model["ratingcount"]
+		//let ratingcount = ""
+		modelDict[modelName] = {
+			"status": "inactive",
+			"modelid": modelid,
+			"rating": rating,
+			"website": website,
+			"thumbnail": thumbnail,
+			"description": description,
+			"rating": rating,
+			"ratingcount": ratingcount,
+			"config": "configs/stable-diffusion/v1-inference.yaml",
+			"width": width,
+			"height": height,
+			"default": false
 		}
-	 	thisModels = models[0]
+	}
 
-		for (var model in thisModels){
-			let modelName = model
-			let width = thisModels[model]["baseResolution"][0]
-			let height = thisModels[model]["baseResolution"][0]
-			let thumbnail = thisModels[model]["thumbnail"]
-			let modelid = thisModels[model]["defaultCheckpoint"]
-			let website = thisModels[model]["website"]
-			let rating = thisModels[model]["rating"]
-			let ratingcount = thisModels[model]["ratingcount"]
-			modelDict[modelNameDict[modelName]] = {
-				"status": "inactive",
-				"modelid": modelid,
-				"rating": rating,
-				"website": website,
-				"thumbnail": thumbnail,
-				"description": modelName,
-				"rating": rating,
-				"ratingcount": ratingcount,
-				"config": "configs/stable-diffusion/v1-inference.yaml",
-				"width": width,
-				"height": height,
-				"default": false
-			}
-		}
-
-		modelDict["stable-diffusion-v1.5"] = {
-				"status": "inactive",
-				"description": "Stable Diffusion version 1.5",
-				"modelid": "stable-diffusion-v1.5",
-				"website": "https://stability.ai/",
-				"thumbnail": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/1677792559545-55FBL2X2SFVHMKFGFYO1/2777127019_abstract_shapes__colorways__patterns_and_shapes__Partnership_Stability_and_Krikey_team_together__bes.png?format=750w",
-				//"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
-				"config": "configs/stable-diffusion/v1-inference.yaml",
-				"width": 512,
-				"rating": 5,
-				"ratingcount": 20,
-				"height": 512,
-				"default": true
-		}
-		modelDict["stable-diffusion-v2.1"] = {
+	modelDict["stable-diffusion-v1-5"] = {
 			"status": "inactive",
 			"description": "Stable Diffusion version 1.5",
 			"modelid": "stable-diffusion-v1.5",
 			"website": "https://stability.ai/",
 			"thumbnail": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/1677792559545-55FBL2X2SFVHMKFGFYO1/2777127019_abstract_shapes__colorways__patterns_and_shapes__Partnership_Stability_and_Krikey_team_together__bes.png?format=750w",
-			//"weights": "models/ldm/stable-diffusion-v1/v1-5-pruned-emaonly.ckpt",
-			"config": "configs/stable-diffusion/v1-inference.yaml",
 			"width": 512,
+			"height": 512,
 			"rating": 5,
 			"ratingcount": 20,
-			"height": 512,
 			"default": true
-		}
-		// sort modelDict by key active first
-		let activeModels = {}
-		let inactiveModels = {}
-		// get api status from website synchroneously
+	}
+	modelDict["stable-diffusion-v2-1"] = {
+		"status": "inactive",
+		"description": "Stable Diffusion version 1.5",
+		"modelid": "stable-diffusion-v1.5",
+		"website": "https://stability.ai/",
+		"thumbnail": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/1677792559545-55FBL2X2SFVHMKFGFYO1/2777127019_abstract_shapes__colorways__patterns_and_shapes__Partnership_Stability_and_Krikey_team_together__bes.png?format=750w",
+		"width": 512,
+		"rating": 5,
+		"ratingcount": 20,
+		"height": 512,
+		"default": true
+	}
+	// sort modelDict by key active first
+	let activeModels = {}
+	let inactiveModels = {}
+	// get api status from website synchroneously
 
 
-		for (var model in modelDict){
-			let modelLength = model.length
-			if (modelDict[model]['ratingcount'] >= 10 && modelLength < 100){
-				if (modelDict[model]["status"] == "active"){
-					activeModels[model] = modelDict[model]
-				}
-				else{
-					inactiveModels[model] = modelDict[model]
-				}
+	for (var model in modelDict){
+		let modelLength = model.length
+		if (modelDict[model]['ratingcount'] >= 10 && modelLength < 100){
+			if (modelDict[model]["status"] == "active"){
+				activeModels[model] = modelDict[model]
+			}
+			else{
+				inactiveModels[model] = modelDict[model]
 			}
 		}
-		modelDict = {...activeModels, ...inactiveModels}
-		fs.writeFileSync("filterdmodelDict.json", JSON.stringify(modelDict))
-		let template ={
-		"model": "stable diffusion",
-		"model_weights": "stable-diffusion-1.5",
-		"model_hash": "cc6cb27103417325ff94f52b7a5d2dde45a7515b25c255d8e396c90014281516",
-		"app_id": "invoke-ai/InvokeAI",
-		"app_version": "2.2.5",
-		"model_list": modelDict,
-		"infill_methods": ["tile"]
+	}
+	modelDict = {...activeModels, ...inactiveModels}
+	fs.writeFileSync("filterdmodelDict.json", JSON.stringify(modelDict))
+	let template ={
+	"model": "stable diffusion",
+	"model_weights": "stable-diffusion-1.5",
+	"model_hash": "cc6cb27103417325ff94f52b7a5d2dde45a7515b25c255d8e396c90014281516",
+	"app_id": "invoke-ai/InvokeAI",
+	"app_version": "2.2.5",
+	"model_list": modelDict,
+	"infill_methods": ["tile"]
+	}
+	if(token != null && token != undefined && token != ""){
+		template["token"] = token
+	}
+	let serverStatus = getServerStatus()
+	let workers = serverStatus["workers"]
+	for( var worker in workers){
+		let thisWorker = workers[worker]
+		let thisModel = thisWorker["model"]
+		let thisTranslatedName = modelNameDict[thisModel]
+		if (Object.keys(template["model_list"]).includes(thisTranslatedName)){
+			template["model_list"][thisTranslatedName]["status"] = "active"
 		}
-		if(token != null && token != undefined && token != ""){
-			template["token"] = token
-		}
-		let serverStatus = getServerStatus()
-		let workers = serverStatus["workers"]
-		for( var worker in workers){
-			let thisWorker = workers[worker]
-			let thisModel = thisWorker["model"]
-			let thisTranslatedName = modelNameDict[thisModel]
-			if (Object.keys(template["model_list"]).includes(thisTranslatedName)){
-				template["model_list"][thisTranslatedName]["status"] = "active"
-			}
-		}
+	}
 	return template
 }
 
@@ -461,12 +454,14 @@ export function startServer(port){
 		socket.emit('sid', sid)
 		let token
 		let config = systemConfig(sid, "", null, socket)
+		/*
 		if (Object.keys(config).includes("token")){
 			token = config["token"]
 		}
 		else{
 			token = undefined
 		}
+		*/
 		socket.emit('systemConfig', config)
 		//let images = requestImages("result", sid, 0, token, socket)
 		//socket.emit('galleryImages', images)
