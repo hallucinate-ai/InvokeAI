@@ -188,24 +188,42 @@ function fixfaces(request, request2, request3, timestamp, task, context, socket)
 						}
 
 						if(request3 != false && request2 == false){
+							if (uid == undefined || uid == null || uid == ""){
+								uid = "defaultUser"
+							}
+							let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
+						
+							if (Object.keys(modelSelection).includes(uid)){
+								model = modelSelection[uid]
+							}
 							let type = request3["type"]
 							if (type == "codeformer"){
 								task = {
-									"command": "diffuse",
+									"command": "enhance_face",
 									"model": type,
 									"codeformer_fidelity": request3["codeformer_fidelity"],
 									"face_strength": request3["strength"],
 									"timestamp": Date.now(),
+									"model": "codeformer",
 									"input_image": request["init_img"],
 									"id": id
 								}
 							}
 							else {
+								if (uid == undefined || uid == null || uid == ""){
+									uid = "defaultUser"
+								}
+								let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
+							
+								if (Object.keys(modelSelection).includes(uid)){
+									model = modelSelection[uid]
+								}
 								task = {
-									"command": "diffuse",
+									"command": "enhance_face",
 									"model": type,
 									"denoising_strength": request3["strength"],
 									"timestamp": Date.now(),
+									"model": "codeformer",
 									"input_image": request["init_img"],
 									"id": id
 								}
@@ -254,7 +272,7 @@ function fixfaces(request, request2, request3, timestamp, task, context, socket)
 	})
 }
 
-export function main(request, request2, request3, timestamp, socket){
+export function main(request, request2, request3, uid, timestamp, socket){
 	// make websocket request to api.hallucinate.app and get the image
 	console.log("Enhancing image")
 	console.log(request2)
@@ -267,10 +285,19 @@ export function main(request, request2, request3, timestamp, socket){
 	let task = {}
 	if(request3 != false){
 		let type = request3["type"]
+		if (uid == undefined || uid == null || uid == ""){
+			uid = "defaultUser"
+		}
+		let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
+		let model = ""
+		if (Object.keys(modelSelection).includes(uid)){
+			model = modelSelection[uid]
+		}
 		if (type == "codeformer"){
 			task = {
-				"command": "enhance_faces",
+				"command": "enhance_face",
 				"fidelity": request3["codeformer_fidelity"],
+				"model": "codeformer",
 				"input_image": request["init_img"],
 				"id": id
 			}
@@ -303,11 +330,20 @@ export function main2(request, request2, request3, timestamp, socket){
 	if(request2 != false){
 		if(request3 != false){
 			let type = request3["type"]
+			if (uid == undefined || uid == null || uid == ""){
+				uid = "defaultUser"
+			}
+			let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
+		
+			if (Object.keys(modelSelection).includes(uid)){
+				model = modelSelection[uid]
+			}
 			if (type == "codeformer"){
 				task = {
-					"command": "enhance_faces",
+					"command": "enhance_face",
 					"fidelity": request3["codeformer_fidelity"],
 					"input_image": request["init_img"],
+					"model": "codeformer",
 					"id": id
 				}
 				if (Object.keys(request2).includes("level")){

@@ -10,17 +10,12 @@ export function main(type, mtime, token, socket){
 	if(!fs.existsSync('./gallery/' + user + '/')){
 		fs.mkdirSync('./gallery/' + user + '/')
 	}
-	if(!fs.existsSync('./s3gallery/' + user + '/')){
-		fs.mkdirSync('./s3gallery/' + user + '/')
-	}
+
 	if(!fs.existsSync('./gallery/' + user + '/metadata.json')){
 		let metadata = {}
 		fs.writeFileSync('./gallery/' + user + '/metadata.json', JSON.stringify(metadata))
 	}
-	if(!fs.existsSync('./s3gallery/' + user + '/metadata.json')){
-		let metadata = {}
-		fs.writeFileSync('./gallery/' + user + '/metadata.json', JSON.stringify(metadata))
-	}
+
 	let category = ""
 	let files = fs.readdirSync('./gallery/' + user + '/')
 	let metadata = fs.readFileSync('./gallery/' + user + '/metadata.json')

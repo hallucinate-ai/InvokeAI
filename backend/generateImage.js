@@ -148,13 +148,16 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 		uid = "defaultUser"
 	}
 	let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
-	if (request["strength"] == undefined || request["generation_mode"] == "txt2img"){
-		request["strength"] = 1
-	}
 
 	if (Object.keys(modelSelection).includes(uid)){
 		model = modelSelection[uid]
 	}
+
+	if (request["strength"] == undefined || request["generation_mode"] == "txt2img"){
+		request["strength"] = 1
+	}
+
+
 
 	if (request["init_img"] != undefined){
 		request["init_img"] = request["init_img"].replace("outputs", "gallery")
@@ -430,7 +433,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 						}
 						socket.emit("progressUpdate", output3);
 
-						let enhanceResults = upscale.main(request, request2, request3, timestamp, socket)
+						let enhanceResults = upscale.main(request, request2, request3, uid, timestamp, socket)
 						//set timeout to 15 seconds
 						if(request2 == false && request3 == false){
 

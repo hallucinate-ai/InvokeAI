@@ -26,7 +26,7 @@ async function execute(command, args) {
 }
 
 
-function upscale(request, request2, request3, timestamp, task, context, socket){
+function upscale(request, request2, request3, uid, timestamp,  task, context, socket){
 	let cwd = process.cwd()
 	console.log("upscale called")
 	var output = {}
@@ -188,7 +188,7 @@ function upscale(request, request2, request3, timestamp, task, context, socket){
 							if (request3 == false)
 								socket.emit("generationResult", template)
 							else{
-								fixfaces.main(request, request2, request3, timestamp, socket)
+								fixfaces.main(request, request2, request3, uid, timestamp, socket)
 							}
 						}
 					}
@@ -232,7 +232,7 @@ function upscale(request, request2, request3, timestamp, task, context, socket){
 	})
 }
 
-export function main(request, request2, request3, timestamp, socket){
+export function main(request, request2, request3, uid, timestamp, socket){
 	// make websocket request to api.hallucinate.app and get the image
 	console.log("Enhancing image")
 	console.log(request2)
@@ -251,7 +251,7 @@ export function main(request, request2, request3, timestamp, socket){
 			"id": id
 		}
 		context = fs.readFileSync(cwd + '/gallery/' + request['token'] + "/" + timestamp + '.png')
-		let results = upscale(request, request2, request3, timestamp, task, context, socket)
+		let results = upscale(request, request2, request3, uid, timestamp, task, context, socket)
 	} 
 	return results
 }
