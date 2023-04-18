@@ -50,24 +50,24 @@ function systemConfig(t, model, token, socket){
 	let modelDict = {}
 	let modelNameDict = {}	
 	for (var model in models){
-		let modelName = model['id']
-		let width = model['width']
-		let height = model['height']
-		let thumbnail = model["thumbnail"]
-		let modelid = model["id"]
-		let description = model['description']
-		let website = model["website"]
+		let modelName = models[model]['name']
+		let width = models[model]['width']
+		let height = models[model]['height']
+		let thumbnails = models[model]["thumbnails"]
+		let modelid = models[model]["id"]
+		let description = models[model]['description']
+		let website = models[model]["website"]
 		//let website = ""
-		let rating = model["rating"]
+		let rating = models[model]["rating"]
 		//let rating = ""
-		let ratingcount = model["ratingcount"]
+		let ratingcount = models[model]["numRatings"]
 		//let ratingcount = ""
 		modelDict[modelName] = {
 			"status": "inactive",
 			"modelid": modelid,
 			"rating": rating,
 			"website": website,
-			"thumbnail": thumbnail,
+			"thumbnail": thumbnails,
 			"description": description,
 			"rating": rating,
 			"ratingcount": ratingcount,
@@ -108,15 +108,13 @@ function systemConfig(t, model, token, socket){
 	// get api status from website synchroneously
 
 
-	for (var model in modelDict){
+	for (var model in models){
 		let modelLength = model.length
-		if (modelDict[model]['ratingcount'] >= 10 && modelLength < 100){
-			if (modelDict[model]["status"] == "active"){
-				activeModels[model] = modelDict[model]
-			}
-			else{
-				inactiveModels[model] = modelDict[model]
-			}
+		if (models[model]["status"] == "active"){
+			activeModels[models[model]['name']] = models[model]
+		}
+		else{
+			inactiveModels[models[model]['name']] = models[model]
 		}
 	}
 	modelDict = {...activeModels, ...inactiveModels}
@@ -204,7 +202,7 @@ function requestModelChange(model, uid, socket){
 		"width": 64,
 		"height": 64,
 		"cfg_scale": 10,
-		"sampler_name": 'k_dpmpp_2',
+		"sampler": 'k_lms',
 		"strength": 1,
 		"steps": 1,
 		"seed": Math.floor(Math.random() * 1000000),
