@@ -29,6 +29,7 @@ export interface SystemState
   shouldDisplayInProgressType: InProgressImageType;
   log: Array<LogEntry>;
   token: string;
+  selectedModel: string;
   shouldShowLogViewer: boolean;
   isGFPGANAvailable: boolean;
   isESRGANAvailable: boolean;
@@ -60,6 +61,7 @@ const initialSystemState: SystemState = {
   shouldShowLogViewer: false,
   shouldDisplayInProgressType: 'latents',
   token: '',
+  selectedModel: '',
   shouldDisplayGuides: true,
   isGFPGANAvailable: true,
   isESRGANAvailable: true,
@@ -162,6 +164,7 @@ export const systemSlice = createSlice({
       state.totalIterations = 0;
       state.currentStatusHasSteps = false;
       state.hasError = false;
+      state.model = '';
     },
     setSocketId: (state, action: PayloadAction<string>) => {
       state.socketId = action.payload;
@@ -203,6 +206,9 @@ export const systemSlice = createSlice({
     },
     setToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
+    },
+    setSelectedModel: (state, action: PayloadAction<string>) => {
+      state.selectedModel = action.payload;
     },
     setModelList: (
       state,
@@ -280,6 +286,7 @@ export const {
   setFoundModels,
   setOpenModel,
   setToken,
+  setSelectedModel,
 } = systemSlice.actions;
 
 export default systemSlice.reducer;

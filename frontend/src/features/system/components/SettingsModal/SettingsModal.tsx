@@ -29,6 +29,7 @@ import {
   setShouldDisplayGuides,
   setShouldDisplayInProgressType,
   setToken,
+  setSelectedModel,
 } from 'features/system/store/systemSlice';
 import { uiSelector } from 'features/ui/store/uiSelectors';
 import { setShouldUseCanvasBetaLayout } from 'features/ui/store/uiSlice';
@@ -48,6 +49,7 @@ const selector = createSelector(
       saveIntermediatesInterval,
       enableImageDebugging,
       token,
+      selectedModel,
     } = system;
 
     const { shouldUseCanvasBetaLayout } = ui;
@@ -61,6 +63,7 @@ const selector = createSelector(
       enableImageDebugging,
       shouldUseCanvasBetaLayout,
       token,
+      selectedModel,
     };
   },
   {
@@ -105,6 +108,7 @@ const SettingsModal = ({ children }: SettingsModalProps) => {
     enableImageDebugging,
     shouldUseCanvasBetaLayout,
     token,
+    selectedModel,
   } = useAppSelector(selector);
 
   /**

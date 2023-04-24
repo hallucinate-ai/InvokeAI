@@ -16,6 +16,7 @@ import {
   generationRequested,
   modelChangeRequested,
   setIsProcessing,
+  setSelectedModel,
 } from 'features/system/store/systemSlice';
 import { InvokeTabName } from 'features/ui/store/tabMap';
 import { Socket } from 'socket.io-client';
@@ -180,6 +181,8 @@ const makeSocketIOEmitters = (
     },
     emitRequestModelChange: (modelName: string) => {
       const token = getState().system.token;
+      const selectedModel = modelName;
+      setSelectedModel(selectedModel);
       dispatch(modelChangeRequested());
       socketio.emit('requestModelChange', modelName, token);
     },

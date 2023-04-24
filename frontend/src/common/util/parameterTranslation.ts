@@ -35,6 +35,7 @@ export type BackendGenerationParameters = {
   steps: number;
   cfg_scale: number;
   token: string;
+  selectedModel: string;
   threshold: number;
   perlin: number;
   height: number;
@@ -155,6 +156,7 @@ export const frontendToBackendParameters = (
     steps,
     cfg_scale: cfgScale,
     token: systemState.token,
+    selectedModel: systemState.selectedModel,
     threshold,
     perlin,
     height,

@@ -68,7 +68,6 @@ export function main(){
 					break
 	
 				case 'models':
-					console.log(payload.models)
 					fs.writeFileSync(cwd + '/models.json', JSON.stringify(payload.models))
 					return payload.models
 					break

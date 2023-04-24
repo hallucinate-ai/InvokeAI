@@ -162,16 +162,21 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 	if (request["init_img"] != undefined){
 		request["init_img"] = request["init_img"].replace("outputs", "gallery")
 	}
-
+	let modelList = JSON.parse(fs.readFileSync(cwd + '/models.json'))
+	let modelid = ""
+	for (var thisModel in modelList){
+		if (modelList[thisModel]["name"] == request["model"]){
+			modelid = modelList[thisModel]["id"]
+		}
+	}
 	let task = {
 		"command": "txt2img",
-		//"model": model,
-		"model": "stable-diffusion-v1-5",
+		"model": modelid,
 		"prompt": request["prompt"],
 		"width": request["width"],
 		"height": request["height"],
 		"token": request["token"],
-		"sampler": request["sampler_name"],
+		"sampler": request["sampler"],
 		"cfg_scale": request["cfg_scale"],
 		"denoising_strength": request["strength"],
 		"steps": request["steps"],

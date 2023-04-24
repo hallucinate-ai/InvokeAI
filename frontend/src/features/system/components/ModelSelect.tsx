@@ -7,6 +7,7 @@ import { isEqual, map } from 'lodash';
 
 import { ChangeEvent } from 'react';
 import { activeModelSelector, systemSelector } from '../store/systemSelectors';
+import { setSelectedModel } from '../store/systemSlice';
 
 const selector = createSelector(
   [systemSelector],
@@ -27,6 +28,7 @@ const ModelSelect = () => {
   const { models, isProcessing } = useAppSelector(selector);
   const activeModel = useAppSelector(activeModelSelector);
   const handleChangeModel = (e: ChangeEvent<HTMLSelectElement>) => {
+    dispatch(setSelectedModel(e.target.value));
     dispatch(requestModelChange(e.target.value));
   };
 

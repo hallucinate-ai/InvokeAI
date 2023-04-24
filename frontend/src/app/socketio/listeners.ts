@@ -17,6 +17,7 @@ import {
   setIsProcessing,
   setModelList,
   setSearchFolder,
+  setSelectedModel,
   setSystemConfig,
   setSystemStatus,
 } from 'features/system/store/systemSlice';
@@ -413,6 +414,7 @@ const makeSocketIOListeners = (
     onModelChanged: (data: InvokeAI.ModelChangeResponse) => {
       const { model_name, model_list } = data;
       dispatch(setModelList(model_list));
+      dispatch(setSelectedModel(model_name));
       dispatch(setCurrentStatus(i18n.t('common:statusModelChanged')));
       dispatch(setIsProcessing(false));
       dispatch(setIsCancelable(true));

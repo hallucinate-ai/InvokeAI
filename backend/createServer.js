@@ -53,13 +53,11 @@ function systemConfig(t, model, token, socket){
 		let modelName = models[model]['name']
 		let width = models[model]['width']
 		let height = models[model]['height']
-		let thumbnails = models[model]["thumbnails"]
+		let thumbnails = models[model]["thumbnails"][0]
 		let modelid = models[model]["id"]
 		let description = models[model]['description']
 		let website = models[model]["website"]
-		//let website = ""
 		let rating = models[model]["rating"]
-		//let rating = ""
 		let ratingcount = models[model]["numRatings"]
 		//let ratingcount = ""
 		modelDict[modelName] = {
@@ -107,14 +105,13 @@ function systemConfig(t, model, token, socket){
 	let inactiveModels = {}
 	// get api status from website synchroneously
 
-
-	for (var model in models){
+	for (var model in modelDict){
 		let modelLength = model.length
-		if (models[model]["status"] == "active"){
-			activeModels[models[model]['name']] = models[model]
+		if (modelDict[model]["status"] == "active"){
+			activeModels[model] = modelDict[model]
 		}
 		else{
-			inactiveModels[models[model]['name']] = models[model]
+			inactiveModels[model] = modelDict[model]
 		}
 	}
 	modelDict = {...activeModels, ...inactiveModels}
