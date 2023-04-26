@@ -140,43 +140,36 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 	}
 
 	//let dir = path.dirname(new URL(import.meta.url).pathname)	let timestamp = Date.now()
-	if(!fs.existsSync(cwd + '/modelSelection.json')){
-		fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify({}))
-	}
 
 	if (uid == undefined || uid == null || uid == ""){
 		uid = "defaultUser"
-	}
-	let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
-
-	if (Object.keys(modelSelection).includes(uid)){
-		model = modelSelection[uid]
 	}
 
 	if (request["strength"] == undefined || request["generation_mode"] == "txt2img"){
 		request["strength"] = 1
 	}
 
-
-
 	if (request["init_img"] != undefined){
 		request["init_img"] = request["init_img"].replace("outputs", "gallery")
 	}
-	let modelList = JSON.parse(fs.readFileSync(cwd + '/models.json'))
-	let modelid = ""
-	for (var thisModel in modelList){
-		if (modelList[thisModel]["name"] == request["model"]){
-			modelid = modelList[thisModel]["id"]
+	let translatedModelName = request["selectedModel"]
+	let modelList = config["model_list"]
+	model = "stable-diffusion-v1-5"
+	for (let i = 0; i < Object.keys(modelList).length; i++){
+		let thisModelName = Object.keys(modelList)[i]
+		let thismodelId = modelList[thisModelName]["modelid"] 
+		if (translatedModelName == thisModelName){
+			model = thismodelId
 		}
 	}
 	let task = {
 		"command": "txt2img",
-		"model": modelid,
+		"model": model,
 		"prompt": request["prompt"],
 		"width": request["width"],
 		"height": request["height"],
 		"token": request["token"],
-		"sampler": request["sampler"],
+		"sampler": request["sampler_name"],
 		"cfg_scale": request["cfg_scale"],
 		"denoising_strength": request["strength"],
 		"steps": request["steps"],

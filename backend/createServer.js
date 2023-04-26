@@ -207,8 +207,8 @@ function requestModelChange(model, uid, socket){
 		"seamless": false,
 		"hires_fix": false,
 		"variation_amount": 0,
-		"generation_mode": "txt2img"
-
+		"generation_mode": "txt2img",
+		"token": uid
 	}
 	if (uid == undefined){
 		uid = 'defaultUser'
