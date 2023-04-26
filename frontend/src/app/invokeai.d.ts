@@ -174,7 +174,6 @@ export declare type Model = {
   rating?: number;
   ratingcount?: number;
   modelid?: string;
-  //vae?: string;
   width?: number;
   height?: number;
   default?: boolean;
@@ -189,10 +188,6 @@ export declare type DiffusersModel = {
   modelid?: string;
   rating?: number;
   ratingcount?: number;
-  //vae?: {
-  //  repo_id?: string;
-  //  path?: string;
-  //};
   format?: string;
   default?: boolean;
   thumbnail?: string;
