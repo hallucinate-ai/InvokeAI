@@ -100,10 +100,6 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 	// generate a random id for the image
 	let id = Math.floor(Math.random() * 1000000000)
 	let cwd = process.cwd()
-	let model = 'stable-diffusion-v1.5'
-	if (request["model"] != undefined){
-		model = request["model"]
-	}
 	if (request["seed"] ==  0 || request["seed"] == undefined){
 		request["seed"] = Math.floor(Math.random() * 100000)
 	}
@@ -154,7 +150,7 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 	}
 	let translatedModelName = request["selectedModel"]
 	let modelList = config["model_list"]
-	model = "stable-diffusion-v1-5"
+	let model = ""
 	for (let i = 0; i < Object.keys(modelList).length; i++){
 		let thisModelName = Object.keys(modelList)[i]
 		let thismodelId = modelList[thisModelName]["modelid"] 

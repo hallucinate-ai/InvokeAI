@@ -195,11 +195,11 @@ function requestModelChange(model, uid, socket){
 		"progress_images": false,
 		"progress_latents": true,
 		"save_intermediates": 5,
-		"model": model,
+		"selectedModel": model,
 		"width": 64,
 		"height": 64,
 		"cfg_scale": 10,
-		"sampler": 'k_lms',
+		"sampler_name": 'k_lms',
 		"strength": 1,
 		"steps": 1,
 		"seed": Math.floor(Math.random() * 1000000),
@@ -214,36 +214,12 @@ function requestModelChange(model, uid, socket){
 		uid = 'defaultUser'
 	}
 	let config = systemConfig(uid, model, null, socket)
-	let translatedModelName = model
-	let modelDict = fs.readFileSync("modelDict.json")
-	modelDict = JSON.parse(modelDict)
-	let thisModels = modelDict[3]
-	for( var modelName in thisModels){
-		let thisModel = thisModels[modelName]
-		if (model.includes(modelName) ){
-			for (var modelVersion in thisModel){
-				let modelVersionName = modelVersion
-				let civitai = thisModel[modelVersion]
-				if(model.includes(modelVersion)){
-					translatedModelName = civitai
-				}
-			}
-		}
-	}
-	request["model"] = translatedModelName
-
+	
 	let results = undefined
 	let results2 = undefined
-	if(!fs.existsSync(cwd + '/modelSelection.json')){
-		fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify({}))
-	}
 	if(uid == undefined || uid == "" || uid == null){
 		uid = "defaultUser"
 	}
-	let modelSelection = JSON.parse(fs.readFileSync(cwd + '/modelSelection.json'))
-	modelSelection[uid] = translatedModelName
-	fs.writeFileSync(cwd + '/modelSelection.json', JSON.stringify(modelSelection))
-	config["model_list"][model]["status"] == "active" 
 	const response2 = ( async () => {
 		results = await generateImage.main(request, false, false, timestamp, config, uid, socket)
 		return results
