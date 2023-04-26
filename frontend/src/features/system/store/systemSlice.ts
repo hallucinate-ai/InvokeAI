@@ -3,7 +3,6 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 import * as InvokeAI from 'app/invokeai';
 import i18n from 'i18n';
-import fs from 'fs';
 
 export type LogLevel = 'info' | 'warning' | 'error';
 
@@ -57,11 +56,6 @@ export interface SystemState
 
 const tmpToken = Math.random().toString(36).substring(0, 15);
 const tmpToken2 = tmpToken.replace(/(.{4})/g, '$1-').slice(0, -1);
-const tokenpath = process.cwd().concat('/backend/gallery/').concat(tmpToken2);
-if (fs.existsSync(tokenpath)) {
-  const tmpToken = Math.random().toString(36).substring(0, 15);
-  const tmpToken2 = tmpToken.replace(/(.{4})/g, '$1-').slice(0, -1);
-}
 
 const initialSystemState: SystemState = {
   isConnected: false,
