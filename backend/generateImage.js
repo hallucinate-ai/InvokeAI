@@ -219,7 +219,8 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 
 					case 'error':
 						console.log('error:', payload.message)
-						socket.emit('modelChangeFailed', payload.message)
+						console.log('model change failed:', model, modelList)
+						socket.emit('modelChangeFailed', model, modelList)
 						socket.emit('error', payload.message)
 						break
 		
