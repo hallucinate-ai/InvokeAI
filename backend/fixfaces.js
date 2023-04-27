@@ -424,9 +424,10 @@ export function main2(request, request2, request3, timestamp, socket){
 					}
 					socket.emit("progressUpdate", output);
 					break
-	
+
 				case 'error':
 					console.log('error:', payload.message)
+					socket.emit('error', payload.message)
 					break
 	
 				case 'result':

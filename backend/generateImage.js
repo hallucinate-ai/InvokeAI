@@ -219,6 +219,8 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 
 					case 'error':
 						console.log('error:', payload.message)
+						socket.emit('modelChangeFailed', payload.message)
+						socket.emit('error', payload.message)
 						break
 		
 					case 'result':
@@ -310,8 +312,10 @@ export function main(request, request2, request3, timestamp, config, uid, socket
 					socket.emit("progressUpdate", output);
 					break
 	
+
 				case 'error':
 					console.log('error:', payload.message)
+					socket.emit('error', payload.message)
 					break
 	
 				case 'result':

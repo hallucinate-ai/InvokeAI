@@ -80,6 +80,7 @@ function upscale(request, request2, request3, uid, timestamp,  task, context, so
 	
 				case 'error':
 					console.log('error:', payload.message)
+					socket.emit('error', payload.message)
 					break
 	
 				case 'result':
